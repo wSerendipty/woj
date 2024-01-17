@@ -51,5 +51,24 @@ public interface QuestionService extends IService<Question> {
      * @return
      */
     Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request);
+
+
+    /**
+     * 获取题目封装（管理员）
+     *
+     * @param question
+     * @param request
+     * @return
+     */
+    QuestionVO getQuestionVOAdmin(Question question, HttpServletRequest request);
+
+    /**
+     * 分页获取题目封装（管理员）
+     *
+     * @param questionPage
+     * @param request
+     * @return
+     */
+    Page<QuestionVO> getQuestionVOPageAdmin(Page<Question> questionPage, HttpServletRequest request);
     
 }

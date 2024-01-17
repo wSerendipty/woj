@@ -94,6 +94,7 @@ public class PostCommentServiceImpl extends ServiceImpl<PostCommentMapper, PostC
         queryWrapper.eq(ObjectUtils.isNotEmpty(status), "status", status);
         queryWrapper.eq(ObjectUtils.isNotEmpty(commentId), "parentId", commentId);
         queryWrapper.isNull(ObjectUtils.isEmpty(commentId), "parentId");
+        queryWrapper.orderBy(ObjectUtils.isEmpty(sortField), false, "createTime");
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         return queryWrapper;
@@ -147,7 +148,7 @@ public class PostCommentServiceImpl extends ServiceImpl<PostCommentMapper, PostC
             if (userIdUserListMap.containsKey(userId)) {
                 user = userIdUserListMap.get(userId).get(0);
             }
-            postCommentVO.setUser(userService.getUserVO(user));
+            postCommentVO.setCreateUser(userService.getUserVO(user));
             postCommentVO.setHasThumb(commentIdHasThumbMap.get(postComment.getId()));
             postCommentVO.setHasReply(commentIdHasReplyMap.get(postComment.getId()));
             return postCommentVO;
@@ -176,6 +177,9 @@ public class PostCommentServiceImpl extends ServiceImpl<PostCommentMapper, PostC
         Set<Long> userIds = commentList.stream().map(PostComment::getUserId).collect(Collectors.toSet());
         Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIds).stream().collect(Collectors.groupingBy(User::getId));
 
+        Set<Long> toUserIds = commentList.stream().map(PostComment::getToUserId).collect(Collectors.toSet());
+        Map<Long, List<User>> toUserIdUserListMap = userService.listByIds(toUserIds).stream().collect(Collectors.groupingBy(User::getId));
+
         // 2. 已登录获取用户是否点赞 是否回复
         Map<Long, Boolean> commentIdHasThumbMap = new HashMap<>();
         Map<Long, Boolean> commentIdHasReplyMap = new HashMap<>();
@@ -203,10 +207,16 @@ public class PostCommentServiceImpl extends ServiceImpl<PostCommentMapper, PostC
             BeanUtil.copyProperties(postComment, postCommentVO);
             Long userId = postComment.getUserId();
             User user = null;
+            Long toUserId = postComment.getToUserId();
+            User toUser = null;
             if (userIdUserListMap.containsKey(userId)) {
                 user = userIdUserListMap.get(userId).get(0);
             }
-            postCommentVO.setUser(userService.getUserVO(user));
+            if (toUserIdUserListMap.containsKey(toUserId)) {
+                toUser = toUserIdUserListMap.get(toUserId).get(0);
+            }
+            postCommentVO.setCreateUser(userService.getUserVO(user));
+            postCommentVO.setToUser(userService.getUserVO(toUser));
             postCommentVO.setHasThumb(commentIdHasThumbMap.get(postComment.getId()));
             postCommentVO.setHasReply(commentIdHasReplyMap.get(postComment.getId()));
             return postCommentVO;

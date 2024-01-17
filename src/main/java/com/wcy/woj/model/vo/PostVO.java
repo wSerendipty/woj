@@ -72,6 +72,11 @@ public class PostVO implements Serializable {
     private List<String> tagList;
 
     /**
+     * 特殊标签列表
+     */
+    private List<String> specialTagList;
+
+    /**
      * 创建人信息
      */
     private UserVO user;
@@ -118,6 +123,7 @@ public class PostVO implements Serializable {
         PostVO postVO = new PostVO();
         BeanUtils.copyProperties(post, postVO);
         postVO.setTagList(JSONUtil.toList(post.getTags(), String.class));
+        postVO.setSpecialTagList(JSONUtil.toList(post.getSpecialTags(), String.class));
         return postVO;
     }
 }

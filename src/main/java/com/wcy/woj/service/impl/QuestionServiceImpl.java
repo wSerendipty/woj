@@ -56,10 +56,11 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         String tags = question.getTags();
         String answer = question.getAnswer();
         String judgeCase = question.getJudgeCase();
+        String testJudgeCase = question.getTestJudgeCase();
         String judgeConfig = question.getJudgeConfig();
         // 创建时，参数不能为空
         if (add) {
-            ThrowUtils.throwIf(StringUtils.isAnyBlank(title, content, tags), ErrorCode.PARAMS_ERROR);
+            ThrowUtils.throwIf(StringUtils.isAnyBlank(title, content, tags,judgeCase,testJudgeCase), ErrorCode.PARAMS_ERROR);
         }
         // 有参数则校验
         if (StringUtils.isNotBlank(title) && title.length() > 80) {
@@ -70,9 +71,6 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         }
         if (StringUtils.isNotBlank(answer) && answer.length() > 8192) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "答案过长");
-        }
-        if (StringUtils.isNotBlank(judgeCase) && judgeCase.length() > 8192) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "判题用例过长");
         }
         if (StringUtils.isNotBlank(judgeConfig) && judgeConfig.length() > 8192) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "判题配置过长");
@@ -117,8 +115,45 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         return queryWrapper;
     }
 
+    /**
+     * 获取题目详情 VO
+     * @param question
+     * @param request
+     * @return
+     */
     @Override
     public QuestionVO getQuestionVO(Question question, HttpServletRequest request) {
+        return QuestionVO.objToVo(question);
+    }
+
+    /**
+     * 获取题目列表 VO
+     * @param questionPage
+     * @param request
+     * @return
+     */
+    @Override
+    public Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request) {
+        List<Question> questionList = questionPage.getRecords();
+        Page<QuestionVO> questionVOPage = new Page<>(questionPage.getCurrent(), questionPage.getSize(), questionPage.getTotal());
+        if (CollectionUtils.isEmpty(questionList)) {
+            return questionVOPage;
+        }
+        // 填充信息
+        List<QuestionVO> questionVOList = questionList.stream().map(QuestionVO::objToVo).collect(Collectors.toList());
+        questionVOPage.setRecords(questionVOList);
+        return questionVOPage;
+    }
+
+
+    /**
+     * 获取题目详情 VO（管理员）
+     * @param question
+     * @param request
+     * @return
+     */
+    @Override
+    public QuestionVO getQuestionVOAdmin(Question question, HttpServletRequest request) {
         QuestionVO questionVO = QuestionVO.objToVo(question);
         // 1. 关联查询用户信息
         Long userId = question.getUserId();
@@ -131,8 +166,14 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         return questionVO;
     }
 
+    /**
+     * 获取题目列表 VO （管理员）
+     * @param questionPage
+     * @param request
+     * @return
+     */
     @Override
-    public Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request) {
+    public Page<QuestionVO> getQuestionVOPageAdmin(Page<Question> questionPage, HttpServletRequest request) {
         List<Question> questionList = questionPage.getRecords();
         Page<QuestionVO> questionVOPage = new Page<>(questionPage.getCurrent(), questionPage.getSize(), questionPage.getTotal());
         if (CollectionUtils.isEmpty(questionList)) {

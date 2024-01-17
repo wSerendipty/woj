@@ -67,3 +67,6 @@ cos:
     secretKey: Y0ngYqDZwOzZ6kEatIak0ENQOPIE9DFN
     region: ap-beijing
     bucket: woj-1307671515
+# 代码沙箱配置
+codesandbox:
+  type: remote

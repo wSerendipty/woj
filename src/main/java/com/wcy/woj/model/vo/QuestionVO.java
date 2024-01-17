@@ -1,6 +1,7 @@
 package com.wcy.woj.model.vo;
 
 import cn.hutool.json.JSONUtil;
+import com.wcy.woj.model.dto.question.JudgeCase;
 import com.wcy.woj.model.dto.question.JudgeConfig;
 import com.wcy.woj.model.entity.Question;
 import lombok.Data;
@@ -52,6 +53,11 @@ public class QuestionVO implements Serializable {
     private JudgeConfig judgeConfig;
 
     /**
+     * 测试判题用例（json 对象数组）
+     */
+    private List<JudgeCase> testJudgeCase;
+
+    /**
      * 点赞数
      */
     private Integer thumbNum;
@@ -98,8 +104,12 @@ public class QuestionVO implements Serializable {
             question.setTags(JSONUtil.toJsonStr(tagList));
         }
         JudgeConfig voJudgeConfig = questionVO.getJudgeConfig();
+        List<JudgeCase> testJudgeCase = questionVO.getTestJudgeCase();
         if (voJudgeConfig != null) {
             question.setJudgeConfig(JSONUtil.toJsonStr(voJudgeConfig));
+        }
+        if (testJudgeCase != null) {
+            question.setTestJudgeCase(JSONUtil.toJsonStr(testJudgeCase));
         }
         return question;
     }
@@ -119,6 +129,8 @@ public class QuestionVO implements Serializable {
         List<String> tagList = JSONUtil.toList(question.getTags(), String.class);
         questionVO.setTags(tagList);
         String judgeConfigStr = question.getJudgeConfig();
+        String testJudgeCase = question.getTestJudgeCase();
+        questionVO.setTestJudgeCase(JSONUtil.toList(testJudgeCase, JudgeCase.class));
         questionVO.setJudgeConfig(JSONUtil.toBean(judgeConfigStr, JudgeConfig.class));
         return questionVO;
     }

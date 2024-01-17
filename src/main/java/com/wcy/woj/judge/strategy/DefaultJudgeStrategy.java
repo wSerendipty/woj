@@ -1,7 +1,7 @@
 package com.wcy.woj.judge.strategy;
 
 import cn.hutool.json.JSONUtil;
-import com.wcy.woj.judge.codesandbox.model.JudgeInfo;
+import com.wcy.woj.judge.model.JudgeInfo;
 import com.wcy.woj.model.dto.question.JudgeCase;
 import com.wcy.woj.model.dto.question.JudgeConfig;
 import com.wcy.woj.model.entity.Question;
@@ -28,6 +28,7 @@ public class DefaultJudgeStrategy implements JudgeStrategy {
         List<String> outputList = judgeContext.getOutputList();
         Question question = judgeContext.getQuestion();
         List<JudgeCase> judgeCaseList = judgeContext.getJudgeCaseList();
+        // 默认判题通过
         JudgeInfoMessageEnum judgeInfoMessageEnum = JudgeInfoMessageEnum.ACCEPTED;
         JudgeInfo judgeInfoResponse = new JudgeInfo();
         judgeInfoResponse.setMemory(memory);

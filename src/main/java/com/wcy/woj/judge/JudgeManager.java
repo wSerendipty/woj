@@ -1,11 +1,12 @@
 package com.wcy.woj.judge;
 
-import com.wcy.woj.judge.codesandbox.model.JudgeInfo;
+import com.wcy.woj.judge.model.JudgeInfo;
 import com.wcy.woj.judge.strategy.DefaultJudgeStrategy;
 import com.wcy.woj.judge.strategy.JavaLanguageJudgeStrategy;
 import com.wcy.woj.judge.strategy.JudgeContext;
 import com.wcy.woj.judge.strategy.JudgeStrategy;
-import com.wcy.woj.model.entity.QuestionSubmit;
+import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitAddRequest;
+import com.wcy.woj.model.enums.QuestionSubmitLanguageEnum;
 import org.springframework.stereotype.Service;
 
 /**
@@ -21,10 +22,10 @@ public class JudgeManager {
      * @return
      */
     JudgeInfo doJudge(JudgeContext judgeContext) {
-        QuestionSubmit questionSubmit = judgeContext.getQuestionSubmit();
+        QuestionSubmitAddRequest questionSubmit = judgeContext.getQuestionSubmit();
         String language = questionSubmit.getLanguage();
         JudgeStrategy judgeStrategy = new DefaultJudgeStrategy();
-        if ("java".equals(language)) {
+        if (QuestionSubmitLanguageEnum.getEnumByValue(language) == QuestionSubmitLanguageEnum.JAVA) {
             judgeStrategy = new JavaLanguageJudgeStrategy();
         }
         return judgeStrategy.doJudge(judgeContext);

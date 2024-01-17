@@ -1,9 +1,9 @@
 package com.wcy.woj.judge.strategy;
 
-import com.wcy.woj.judge.codesandbox.model.JudgeInfo;
+import com.wcy.woj.judge.model.JudgeInfo;
 import com.wcy.woj.model.dto.question.JudgeCase;
+import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.wcy.woj.model.entity.Question;
-import com.wcy.woj.model.entity.QuestionSubmit;
 import lombok.Data;
 
 import java.util.List;
@@ -24,6 +24,6 @@ public class JudgeContext {
 
     private Question question;
 
-    private QuestionSubmit questionSubmit;
+    private QuestionSubmitAddRequest questionSubmit;
 
 }

@@ -27,5 +27,10 @@ public class PostAddRequest implements Serializable {
      */
     private List<String> tags;
 
+    /**
+     * 特殊标签列表
+     */
+    private List<String> specialTags;
+
     private static final long serialVersionUID = 1L;
 }

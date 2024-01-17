@@ -41,4 +41,5 @@ public class TagController {
         QueryWrapper<Tag> queryWrapper = tagService.getQueryWrapper(tagQueryRequest);
         return ResultUtils.success(tagService.listTagVO(queryWrapper));
     }
+
 }

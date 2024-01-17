@@ -35,6 +35,11 @@ public class PostCommentVO implements Serializable {
     private Long parentId;
 
     /**
+     * 给哪个id的评论
+     */
+    private Long toUserId;
+
+    /**
      * 评论内容
      */
     private String content;
@@ -67,7 +72,12 @@ public class PostCommentVO implements Serializable {
     /**
      * 创建人信息
      */
-    private UserVO user;
+    private UserVO createUser;
+
+    /**
+     * 给哪个id的评论用户信息
+     */
+    private UserVO toUser;
 
     /**
      * 创建时间

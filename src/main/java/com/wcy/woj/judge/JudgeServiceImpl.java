@@ -8,14 +8,16 @@ import com.wcy.woj.judge.codesandbox.CodeSandboxFactory;
 import com.wcy.woj.judge.codesandbox.CodeSandboxProxy;
 import com.wcy.woj.judge.codesandbox.model.ExecuteCodeRequest;
 import com.wcy.woj.judge.codesandbox.model.ExecuteCodeResponse;
-import com.wcy.woj.judge.codesandbox.model.JudgeInfo;
+import com.wcy.woj.judge.model.JudgeInfo;
 import com.wcy.woj.judge.strategy.JudgeContext;
 import com.wcy.woj.model.dto.question.JudgeCase;
+import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.wcy.woj.model.entity.Question;
 import com.wcy.woj.model.entity.QuestionSubmit;
 import com.wcy.woj.model.enums.QuestionSubmitStatusEnum;
 import com.wcy.woj.service.QuestionService;
 import com.wcy.woj.service.QuestionSubmitService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -86,7 +88,9 @@ public class JudgeServiceImpl implements JudgeService {
         judgeContext.setOutputList(outputList);
         judgeContext.setJudgeCaseList(judgeCaseList);
         judgeContext.setQuestion(question);
-        judgeContext.setQuestionSubmit(questionSubmit);
+        QuestionSubmitAddRequest questionSubmitAddRequest = new QuestionSubmitAddRequest();
+        BeanUtils.copyProperties(questionSubmit, questionSubmitAddRequest);
+        judgeContext.setQuestionSubmit(questionSubmitAddRequest);
         JudgeInfo judgeInfo = judgeManager.doJudge(judgeContext);
         // 6）修改数据库中的判题结果
         questionSubmitUpdate = new QuestionSubmit();
@@ -97,7 +101,8 @@ public class JudgeServiceImpl implements JudgeService {
         if (!update) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "题目状态更新错误");
         }
-        QuestionSubmit questionSubmitResult = questionSubmitService.getById(questionId);
+        QuestionSubmit questionSubmitResult = questionSubmitService.getById(questionSubmitId);
         return questionSubmitResult;
     }
+
 }

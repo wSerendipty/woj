@@ -21,18 +21,17 @@ import com.wcy.woj.service.PostCommentService;
 import com.wcy.woj.service.PostService;
 import com.wcy.woj.service.UserService;
 import com.wcy.woj.utils.SqlUtils;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilder;
@@ -48,8 +47,6 @@ import org.springframework.stereotype.Service;
 
 /**
  * 帖子服务实现
- *
-
  */
 @Service
 @Slf4j
@@ -124,6 +121,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
         queryWrapper.eq("isDelete", false);
+        queryWrapper.orderBy(ObjectUtils.isEmpty(sortField), false, "createTime");
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         return queryWrapper;
@@ -304,6 +302,8 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         postVOPage.setRecords(postVOList);
         return postVOPage;
     }
+
+
 
 }
 

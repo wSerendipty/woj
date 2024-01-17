@@ -1,6 +1,8 @@
 package com.wcy.woj.judge;
 
 
+import com.wcy.woj.judge.model.JudgeInfo;
+import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.wcy.woj.model.entity.QuestionSubmit;
 
 /**
@@ -14,4 +16,6 @@ public interface JudgeService {
      * @return
      */
     QuestionSubmit doJudge(long questionSubmitId);
+
+
 }

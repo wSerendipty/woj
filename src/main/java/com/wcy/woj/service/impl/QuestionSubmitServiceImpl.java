@@ -8,6 +8,7 @@ import com.wcy.woj.constant.CommonConstant;
 import com.wcy.woj.exception.BusinessException;
 import com.wcy.woj.judge.JudgeService;
 import com.wcy.woj.mapper.QuestionSubmitMapper;
+import com.wcy.woj.model.dto.question.JudgeCase;
 import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.wcy.woj.model.entity.Question;

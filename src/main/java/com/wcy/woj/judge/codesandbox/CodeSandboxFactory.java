@@ -1,5 +1,6 @@
 package com.wcy.woj.judge.codesandbox;
 
+import com.wcy.woj.constant.CodeSandboxConstant;
 import com. wcy.woj.judge.codesandbox.impl.ExampleCodeSandbox;
 import com. wcy.woj.judge.codesandbox.impl.RemoteCodeSandbox;
 import com. wcy.woj.judge.codesandbox.impl.ThirdPartyCodeSandbox;
@@ -13,15 +14,12 @@ public class CodeSandboxFactory {
      * 创建代码沙箱示例
      *
      * @param type 沙箱类型
-     * @return
      */
     public static CodeSandbox newInstance(String type) {
         switch (type) {
-            case "example":
-                return new ExampleCodeSandbox();
-            case "remote":
+            case CodeSandboxConstant.CODE_SANDBOX_TYPE_REMOTE:
                 return new RemoteCodeSandbox();
-            case "thirdParty":
+            case CodeSandboxConstant.CODE_SANDBOX_TYPE_THIRD_PARTY:
                 return new ThirdPartyCodeSandbox();
             default:
                 return new ExampleCodeSandbox();

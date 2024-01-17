@@ -1,7 +1,7 @@
 package com.wcy.woj.judge.strategy;
 
 import cn.hutool.json.JSONUtil;
-import com.wcy.woj.judge.codesandbox.model.JudgeInfo;
+import com.wcy.woj.judge.model.JudgeInfo;
 import com.wcy.woj.model.dto.question.JudgeCase;
 import com.wcy.woj.model.dto.question.JudgeConfig;
 import com.wcy.woj.model.entity.Question;

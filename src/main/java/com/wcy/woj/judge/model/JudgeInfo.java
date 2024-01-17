@@ -1,4 +1,4 @@
-package com.wcy.woj.judge.codesandbox.model;
+package com.wcy.woj.judge.model;
 
 import lombok.Data;
 
@@ -22,4 +22,7 @@ public class JudgeInfo {
      * 消耗时间（KB）
      */
     private Long time;
+
+
+
 }

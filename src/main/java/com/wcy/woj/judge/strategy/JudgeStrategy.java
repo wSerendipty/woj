@@ -1,7 +1,7 @@
 package com.wcy.woj.judge.strategy;
 
 
-import com.wcy.woj.judge.codesandbox.model.JudgeInfo;
+import com.wcy.woj.judge.model.JudgeInfo;
 
 /**
  * 判题策略

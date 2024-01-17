@@ -8,13 +8,13 @@ import java.util.stream.Collectors;
 
 /**
  * 题目提交编程语言枚举
- *
- *
  */
 public enum QuestionSubmitLanguageEnum {
 
     JAVA("java", "java"),
     CPLUSPLUS("cpp", "cpp"),
+
+    C("c", "c"),
     GOLANG("go", "go");
 
     private final String text;

@@ -1,5 +1,6 @@
 package com.wcy.woj.judge.codesandbox.model;
 
+import com.wcy.woj.judge.model.JudgeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

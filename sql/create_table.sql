@@ -33,6 +33,7 @@ create table if not exists question
     submitNum   int      default 0                 not null comment '题目提交数',
     acceptedNum int      default 0                 not null comment '题目通过数',
     judgeCase   text                               null comment '判题用例（json 数组）',
+    testJudgeCase   text                           null comment '测试判题用例（json 数组）',
     judgeConfig text                               null comment '判题配置（json 对象）',
     thumbNum    int      default 0                 not null comment '点赞数',
     favourNum   int      default 0                 not null comment '收藏数',
@@ -68,6 +69,7 @@ create table if not exists post
     title      varchar(512)                       null comment '标题',
     content    text                               null comment '内容',
     tags       varchar(1024)                      null comment '标签列表（json 数组）',
+    specialTags   varchar(1024)                   null comment '特殊标签列表（json 数组）',
     thumbNum   int      default 0                 not null comment '点赞数',
     favourNum  int      default 0                 not null comment '收藏数',
     commentNum int      default 0                 not null comment '评论数',
@@ -84,6 +86,7 @@ create table if not exists post_comment
     id         bigint auto_increment comment 'id' primary key,
     postId     bigint                             not null comment '帖子 id',
     userId     bigint                             not null comment '创建用户 id',
+    toUserId   bigint                             null comment '回复用户 id',
     parentId   bigint                             null comment '父评论 id',
     content    text                               null comment '评论内容',
     thumbNum   int      default 0                 not null comment '点赞数',
@@ -172,14 +175,14 @@ VALUES ('学习新的编程语言', '今天开始学习一门新的编程语言�
 
 
 -- 插入帖子评论表数据
-INSERT INTO post_comment (postId, userId, parentId, content, thumbNum, status, createTime, updateTime)
-VALUES (1, 1740270573453344770, NULL, '这是一条帖子评论', 10, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 1740669921274191873, 1, '回复楼主，支持一下', 5, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (1, 1740270573453344770, NULL, '另一篇帖子的评论', 8, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (2, 1740669921274191873, NULL, '这篇帖子写得很好', 15, 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (2, 1740270573453344770, 4, '同感，作者功力深厚', 7, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (3, 1743170947961077761, NULL, '刚刚注册，第一次评论', 2, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (3, 1740270573453344770, 6, '欢迎加入，一起交流学习', 4, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (4, 1740669921274191873, NULL, '这个话题很有趣', 9, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (4, 1740270573453344770, 8, '我也觉得很有意思，一起讨论', 6, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-       (5, 1743170947961077761, NULL, '感谢分享，对我的工作很有帮助', 12, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO post_comment (postId, userId,toUserId, parentId, content, thumbNum, status, createTime, updateTime)
+VALUES (1, 1740270573453344770,1743170947961077761, NULL, '这是一条帖子评论', 10, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 1740669921274191873,1743170947961077761, 1, '回复楼主，支持一下', 5, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (1, 1740270573453344770,1743170947961077761, NULL, '另一篇帖子的评论', 8, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (2, 1740669921274191873,1743170947961077761, NULL, '这篇帖子写得很好', 15, 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (2, 1740270573453344770, 1743170947961077761,4, '同感，作者功力深厚', 7, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (3, 1743170947961077761, 1743170947961077761,NULL, '刚刚注册，第一次评论', 2, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (3, 1740270573453344770,1743170947961077761, 6, '欢迎加入，一起交流学习', 4, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (4, 1740669921274191873,1743170947961077761, NULL, '这个话题很有趣', 9, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (4, 1740270573453344770,1743170947961077761, 8, '我也觉得很有意思，一起讨论', 6, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+       (5, 1743170947961077761,1743170947961077761, NULL, '感谢分享，对我的工作很有帮助', 12, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

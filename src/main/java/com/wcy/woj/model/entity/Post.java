@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+
 import lombok.Data;
 
 /**
@@ -38,6 +40,11 @@ public class Post implements Serializable {
      * 标签列表 json
      */
     private String tags;
+
+    /**
+     * 特殊标签列表
+     */
+    private String specialTags;
 
     /**
      * 点赞数
