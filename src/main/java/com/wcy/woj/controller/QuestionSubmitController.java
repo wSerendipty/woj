@@ -7,15 +7,13 @@ import com.wcy.woj.common.ResultUtils;
 import com.wcy.woj.exception.BusinessException;
 import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
+import com.wcy.woj.model.entity.Question;
 import com.wcy.woj.model.entity.QuestionSubmit;
 import com.wcy.woj.model.entity.User;
 import com.wcy.woj.model.vo.QuestionSubmitVO;
 import com.wcy.woj.service.QuestionSubmitService;
 import com.wcy.woj.service.UserService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -42,7 +40,7 @@ public class QuestionSubmitController {
      * @param request
      * @return 提交记录的 id
      */
-    @PostMapping("/question_submit/do")
+    @PostMapping("/do")
     public BaseResponse<Long> doQuestionSubmit(@RequestBody QuestionSubmitAddRequest questionSubmitAddRequest,
                                                HttpServletRequest request) {
         if (questionSubmitAddRequest == null || questionSubmitAddRequest.getQuestionId() <= 0) {
@@ -52,6 +50,26 @@ public class QuestionSubmitController {
         final User loginUser = userService.getLoginUser(request);
         long questionSubmitId = questionSubmitService.doQuestionSubmit(questionSubmitAddRequest, loginUser);
         return ResultUtils.success(questionSubmitId);
+    }
+
+
+    /**
+     * 运行题目
+     *
+     * @param questionSubmitAddRequest
+     * @param request
+     * @return 提交记录的 id
+     */
+    @PostMapping("/run")
+    public BaseResponse<QuestionSubmitVO> doQuestionRun(@RequestBody QuestionSubmitAddRequest questionSubmitAddRequest,
+                                               HttpServletRequest request) {
+        if (questionSubmitAddRequest == null || questionSubmitAddRequest.getQuestionId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 登录才能提交
+        final User loginUser = userService.getLoginUser(request);
+        QuestionSubmitVO questionSubmitVO = questionSubmitService.doQuestionRun(questionSubmitAddRequest, loginUser);
+        return ResultUtils.success(questionSubmitVO);
     }
 
     /**
@@ -73,4 +91,26 @@ public class QuestionSubmitController {
         // 返回脱敏信息
         return ResultUtils.success(questionSubmitService.getQuestionSubmitVOPage(questionSubmitPage, loginUser));
     }
+
+    /**
+     * 获取题目提交ID（除了管理员外，普通用户只能看到非答案、提交代码等公开信息）
+     *
+     * @param id
+     * @param request
+     * @return
+     */
+    @GetMapping("/get")
+    public BaseResponse<QuestionSubmitVO> getQuestionSubmitById(long id, HttpServletRequest request) {
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QuestionSubmit questionSubmit = questionSubmitService.getById(id);
+        if (questionSubmit == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        // 返回脱敏信息
+        return ResultUtils.success(questionSubmitService.getQuestionSubmitVO(questionSubmit, loginUser));
+    }
+
 }

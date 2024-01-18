@@ -26,6 +26,17 @@ public interface QuestionSubmitService extends IService<QuestionSubmit> {
     long doQuestionSubmit(QuestionSubmitAddRequest questionSubmitAddRequest, User loginUser);
 
 
+    /**
+     * 题目运行
+     *
+     * @param questionSubmitAddRequest 题目提交信息
+     * @param loginUser
+     * @return
+     */
+    QuestionSubmitVO doQuestionRun(QuestionSubmitAddRequest questionSubmitAddRequest, User loginUser);
+
+
+
 
     /**
      * 获取查询条件

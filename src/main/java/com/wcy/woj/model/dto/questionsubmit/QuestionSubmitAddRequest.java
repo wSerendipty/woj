@@ -1,8 +1,10 @@
 package com.wcy.woj.model.dto.questionsubmit;
 
+import com.wcy.woj.model.dto.question.JudgeCase;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 创建请求
@@ -27,6 +29,11 @@ public class QuestionSubmitAddRequest implements Serializable {
      * 题目 id
      */
     private Long questionId;
+
+    /**
+     * judgeCase
+     */
+    private List<JudgeCase> judgeCase;
 
     private static final long serialVersionUID = 1L;
 }

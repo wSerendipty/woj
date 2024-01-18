@@ -67,6 +67,10 @@ public class QuestionController {
         if (judgeCase != null) {
             question.setJudgeCase(GSON.toJson(judgeCase));
         }
+        List<JudgeCase> testJudgeCase = questionAddRequest.getTestJudgeCase();
+        if (testJudgeCase != null) {
+            question.setTestJudgeCase(GSON.toJson(testJudgeCase));
+        }
         JudgeConfig judgeConfig = questionAddRequest.getJudgeConfig();
         if (judgeConfig != null) {
             question.setJudgeConfig(GSON.toJson(judgeConfig));

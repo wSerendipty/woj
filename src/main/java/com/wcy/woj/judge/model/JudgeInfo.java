@@ -2,6 +2,8 @@ package com.wcy.woj.judge.model;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 判题信息
  */
@@ -14,6 +16,11 @@ public class JudgeInfo {
     private String message;
 
     /**
+     * 执行状态
+     */
+    private String status;
+
+    /**
      * 消耗内存
      */
     private Long memory;
@@ -22,6 +29,21 @@ public class JudgeInfo {
      * 消耗时间（KB）
      */
     private Long time;
+
+    /**
+     * 实际输出
+     */
+    private List<String> output;
+
+    /**
+     * 期望输出
+     */
+    private List<String> expectedOutput;
+
+    /**
+     * 输入
+     */
+    private List<String> input;
 
 
 

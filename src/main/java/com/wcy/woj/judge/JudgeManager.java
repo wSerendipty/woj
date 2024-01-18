@@ -22,8 +22,7 @@ public class JudgeManager {
      * @return
      */
     JudgeInfo doJudge(JudgeContext judgeContext) {
-        QuestionSubmitAddRequest questionSubmit = judgeContext.getQuestionSubmit();
-        String language = questionSubmit.getLanguage();
+        String language = judgeContext.getLanguage();
         JudgeStrategy judgeStrategy = new DefaultJudgeStrategy();
         if (QuestionSubmitLanguageEnum.getEnumByValue(language) == QuestionSubmitLanguageEnum.JAVA) {
             judgeStrategy = new JavaLanguageJudgeStrategy();

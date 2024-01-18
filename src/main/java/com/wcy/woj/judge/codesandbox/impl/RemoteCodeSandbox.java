@@ -1,5 +1,6 @@
 package com.wcy.woj.judge.codesandbox.impl;
 
+import cn.hutool.crypto.digest.MD5;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
 import com. wcy.woj.common.ErrorCode;
@@ -8,6 +9,7 @@ import com. wcy.woj.judge.codesandbox.CodeSandbox;
 import com. wcy.woj.judge.codesandbox.model.ExecuteCodeRequest;
 import com. wcy.woj.judge.codesandbox.model.ExecuteCodeResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * 远程代码沙箱（实际调用接口的沙箱）
@@ -15,16 +17,19 @@ import org.apache.commons.lang3.StringUtils;
 public class RemoteCodeSandbox implements CodeSandbox {
 
     // 定义鉴权请求头和密钥
-    private static final String AUTH_REQUEST_HEADER = "auth";
+    private static final String AUTH_REQUEST_HEADER = "Authorization";
 
-    private static final String AUTH_REQUEST_SECRET = "secretKey";
+    @Value("${auth.request.secret}")
+    private static String secretKey;
+
+    private static final String AUTH_REQUEST_SECRET = MD5.create().digestHex(secretKey);
 
 
     @Override
     public ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest) {
         System.out.println("远程代码沙箱");
-        // String url = "http://localhost:8181/executeCode"; // java原生沙箱
-        String url = "http://localhost:8181/executeCode/docker"; // docker沙箱
+         String url = "http://localhost:8181/executeCode"; // java原生沙箱
+//        String url = "http://localhost:8181/executeCode/docker"; // docker沙箱
         String json = JSONUtil.toJsonStr(executeCodeRequest);
         String responseStr = HttpUtil.createPost(url)
                 .header(AUTH_REQUEST_HEADER, AUTH_REQUEST_SECRET)

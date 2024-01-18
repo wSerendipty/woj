@@ -3,6 +3,7 @@ package com.wcy.woj.judge.codesandbox.impl;
 import com. wcy.woj.judge.codesandbox.CodeSandbox;
 import com. wcy.woj.judge.codesandbox.model.ExecuteCodeRequest;
 import com. wcy.woj.judge.codesandbox.model.ExecuteCodeResponse;
+import com.wcy.woj.judge.codesandbox.model.ExecuteStatusEnum;
 import com.wcy.woj.judge.model.JudgeInfo;
 import com. wcy.woj.model.enums.JudgeInfoMessageEnum;
 import com. wcy.woj.model.enums.QuestionSubmitStatusEnum;
@@ -21,7 +22,7 @@ public class ExampleCodeSandbox implements CodeSandbox {
         ExecuteCodeResponse executeCodeResponse = new ExecuteCodeResponse();
         executeCodeResponse.setOutputList(inputList);
         executeCodeResponse.setMessage("测试执行成功");
-        executeCodeResponse.setStatus(QuestionSubmitStatusEnum.SUCCEED.getValue());
+        executeCodeResponse.setStatus(ExecuteStatusEnum.SUCCESS.getCode());
         JudgeInfo judgeInfo = new JudgeInfo();
         judgeInfo.setMessage(JudgeInfoMessageEnum.ACCEPTED.getText());
         judgeInfo.setMemory(100L);

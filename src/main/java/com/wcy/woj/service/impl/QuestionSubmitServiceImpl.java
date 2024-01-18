@@ -95,6 +95,24 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         return questionSubmitId;
     }
 
+    @Override
+    public QuestionSubmitVO doQuestionRun(QuestionSubmitAddRequest questionSubmitAddRequest, User loginUser) {
+        // 校验编程语言是否合法
+        String language = questionSubmitAddRequest.getLanguage();
+        QuestionSubmitLanguageEnum languageEnum = QuestionSubmitLanguageEnum.getEnumByValue(language);
+        if (languageEnum == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "编程语言错误");
+        }
+        long questionId = questionSubmitAddRequest.getQuestionId();
+        // 判断实体是否存在，根据类别获取实体
+        Question question = questionService.getById(questionId);
+        if (question == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        QuestionSubmitVO questionSubmitVO = judgeService.runJudge(questionSubmitAddRequest);
+        return questionSubmitVO;
+    }
+
 
     /**
      * 获取查询包装类（用户根据哪些字段查询，根据前端传来的请求对象，得到 mybatis 框架支持的查询 QueryWrapper 类）

@@ -69,4 +69,9 @@ cos:
     bucket: woj-1307671515
 # 代码沙箱配置
 codesandbox:
-  type: remote
+  type: remote # example: 示例沙箱，remote: 远程沙箱
+
+# 远程沙箱连接配置
+auth:
+  request:
+    secret: Wcy0626..
