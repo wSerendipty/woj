@@ -13,7 +13,7 @@ import org.apache.commons.lang3.ObjectUtils;
 public enum FileUploadBizEnum {
 
     USER_AVATAR("用户头像", "user_avatar"),
-    COMMENT_IMAGE("评论图片","comment_image");
+    COMMENT_IMAGE("MD上传图片","md_image");
 
 
     private final String text;

@@ -4,6 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.wcy.woj.model.dto.question.JudgeCase;
 import com.wcy.woj.model.dto.question.JudgeConfig;
 import com.wcy.woj.model.entity.Question;
+import com.wcy.woj.model.entity.QuestionTemplate;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -43,6 +44,21 @@ public class QuestionVO implements Serializable {
     private Integer submitNum;
 
     /**
+     * 题解数
+     */
+    private Integer solutionNum;
+
+    /**
+     * 题目难度（简单、中等、困难）
+     */
+    private String difficulty;
+
+    /**
+     * 题目状态（0：未开始，1：通过 2：尝试过）
+     */
+    private Integer status;
+
+    /**
      * 题目通过数
      */
     private Integer acceptedNum;
@@ -56,6 +72,8 @@ public class QuestionVO implements Serializable {
      * 测试判题用例（json 对象数组）
      */
     private List<JudgeCase> testJudgeCase;
+
+    private List<QuestionTemplateVO> questionTemplates;
 
     /**
      * 点赞数

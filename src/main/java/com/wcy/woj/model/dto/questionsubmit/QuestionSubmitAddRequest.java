@@ -24,11 +24,15 @@ public class QuestionSubmitAddRequest implements Serializable {
      */
     private String code;
 
-
     /**
      * 题目 id
      */
     private Long questionId;
+
+    /**
+     * 题目类型 normal / detail / contest
+     */
+    private String type;
 
 
     private static final long serialVersionUID = 1L;

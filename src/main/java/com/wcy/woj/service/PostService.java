@@ -7,6 +7,7 @@ import com.wcy.woj.model.dto.post.PostQueryRequest;
 import com.wcy.woj.model.entity.Post;
 import com.wcy.woj.model.vo.PostVO;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 帖子服务
@@ -56,4 +57,9 @@ public interface PostService extends IService<Post> {
      * @return
      */
     Page<PostVO> getPostVOPage(Page<Post> postPage, HttpServletRequest request);
+
+    /**
+     * 根据点赞数取前10个
+     */
+    List<PostVO> listTopPost();
 }

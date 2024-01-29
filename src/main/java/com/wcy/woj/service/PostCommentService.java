@@ -22,6 +22,8 @@ public interface PostCommentService extends IService<PostComment> {
 
     QueryWrapper<PostComment> getQueryWrapper(PostCommentQueryRequest postCommentQueryRequest);
 
+    QueryWrapper<PostComment> getQueryAllWrapper(PostCommentQueryRequest postCommentQueryRequest);
+
     /**
      * 获取帖子评论封装
      * @param postCommentPage
@@ -44,5 +46,6 @@ public interface PostCommentService extends IService<PostComment> {
      * 删除帖子评论
      */
     Boolean doDeletePostComment(long postCommentId, HttpServletRequest request);
+
 
 }

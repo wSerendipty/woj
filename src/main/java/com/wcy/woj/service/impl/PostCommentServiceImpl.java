@@ -100,6 +100,27 @@ public class PostCommentServiceImpl extends ServiceImpl<PostCommentMapper, PostC
         return queryWrapper;
     }
 
+    @Override
+    public QueryWrapper<PostComment> getQueryAllWrapper(PostCommentQueryRequest postCommentQueryRequest) {
+        QueryWrapper<PostComment> queryWrapper = new QueryWrapper<>();
+        if (postCommentQueryRequest == null) {
+            return queryWrapper;
+        }
+
+        Long postId = postCommentQueryRequest.getPostId();
+        Integer status = postCommentQueryRequest.getStatus();
+        Long commentId = postCommentQueryRequest.getCommentId();
+        String sortField = postCommentQueryRequest.getSortField();
+        String sortOrder = postCommentQueryRequest.getSortOrder();
+        queryWrapper.eq(ObjectUtils.isNotEmpty(postId), "postId", postId);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(status), "status", status);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(commentId), "parentId", commentId);
+        queryWrapper.orderBy(ObjectUtils.isEmpty(sortField), false, "createTime");
+        queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
+                sortField);
+        return queryWrapper;
+    }
+
     /**
      * 获取帖子评论封装 分页
      * @param postCommentPage
@@ -289,6 +310,7 @@ public class PostCommentServiceImpl extends ServiceImpl<PostCommentMapper, PostC
         deleteNum = 0;
         return r > 0;
     }
+
 
     /**
      * 删除帖子评论

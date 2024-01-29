@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  */
 @RestController
-@RequestMapping("/post_thumb")
+@RequestMapping("/post/post_thumb")
 @Slf4j
 public class PostThumbController {
 

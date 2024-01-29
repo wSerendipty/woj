@@ -3,11 +3,13 @@ package com.wcy.woj.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wcy.woj.constant.CommonConstant;
 import com.wcy.woj.mapper.TagMapper;
 import com.wcy.woj.model.dto.tag.TagQueryRequest;
 import com.wcy.woj.model.entity.Tag;
 import com.wcy.woj.model.vo.TagVO;
 import com.wcy.woj.service.TagService;
+import com.wcy.woj.utils.SqlUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -29,10 +31,15 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag>
         Long id = tagQueryRequest.getId();
         String name = tagQueryRequest.getName();
         String belongType = tagQueryRequest.getBelongType();
+        String sortField = tagQueryRequest.getSortField();
+        String sortOrder = tagQueryRequest.getSortOrder();
         QueryWrapper<Tag> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(ObjectUtils.isNotNull(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotNull(name), "name", name);
         queryWrapper.eq(ObjectUtils.isNotNull(belongType), "belongType", belongType);
+        queryWrapper.orderBy(ObjectUtils.isEmpty(sortField), false, "createTime");
+        queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
+                sortField);
         return queryWrapper;
     }
 

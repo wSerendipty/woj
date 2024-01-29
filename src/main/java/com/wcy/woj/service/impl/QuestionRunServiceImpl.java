@@ -62,6 +62,11 @@ public class QuestionRunServiceImpl extends ServiceImpl<QuestionRunMapper, Quest
         if (languageEnum == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "编程语言错误");
         }
+        // 校验是否有代码
+        String code = questionRunAddRequest.getCode();
+        if (StringUtils.isBlank(code)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "代码不能为空");
+        }
         long questionId = questionRunAddRequest.getQuestionId();
         // 判断实体是否存在，根据类别获取实体
         Question question = questionService.getById(questionId);
@@ -87,7 +92,7 @@ public class QuestionRunServiceImpl extends ServiceImpl<QuestionRunMapper, Quest
         Long questionSubmitId = questionRun.getId();
         // 执行判题服务
         CompletableFuture.runAsync(() -> {
-            judgeService.runJudge(questionSubmitId);
+            judgeService.runJudge(questionSubmitId,questionRunAddRequest);
         });
         return questionSubmitId;
     }

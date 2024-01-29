@@ -1,5 +1,6 @@
 package com.wcy.woj.judge;
 
+import com.wcy.woj.model.dto.questionrun.QuestionRunAddRequest;
 import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.wcy.woj.model.entity.QuestionRun;
 import com.wcy.woj.model.entity.QuestionSubmit;
@@ -16,10 +17,10 @@ public interface JudgeService {
      * @param questionSubmitId
      * @return
      */
-    QuestionSubmit doJudge(long questionSubmitId);
+    QuestionSubmit doJudge(long questionSubmitId,long userId, QuestionSubmitAddRequest questionSubmitAddRequest);
 
 
-    QuestionRun runJudge(long questionRunId);
+    QuestionRun runJudge(long questionRunId,QuestionRunAddRequest questionRunAddRequest);
 
 
 }

@@ -1,5 +1,6 @@
 package com.wcy.woj.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.wcy.woj.annotation.AuthCheck;
@@ -10,24 +11,29 @@ import com.wcy.woj.common.ResultUtils;
 import com.wcy.woj.constant.UserConstant;
 import com.wcy.woj.exception.BusinessException;
 import com.wcy.woj.exception.ThrowUtils;
+import com.wcy.woj.model.dto.daily.DailyQueryRequest;
 import com.wcy.woj.model.dto.question.*;
-import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitAddRequest;
-import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
+import com.wcy.woj.model.dto.questionStatus.QuestionStatusQueryRequest;
 import com.wcy.woj.model.entity.Question;
-import com.wcy.woj.model.entity.QuestionSubmit;
+import com.wcy.woj.model.entity.QuestionStatus;
+import com.wcy.woj.model.entity.QuestionTemplate;
 import com.wcy.woj.model.entity.User;
-import com.wcy.woj.model.vo.QuestionSubmitVO;
+import com.wcy.woj.model.vo.QuestionFinishVO;
+import com.wcy.woj.model.vo.QuestionTemplateVO;
 import com.wcy.woj.model.vo.QuestionVO;
 import com.wcy.woj.service.QuestionService;
-import com.wcy.woj.service.QuestionSubmitService;
+import com.wcy.woj.service.QuestionStatusService;
+import com.wcy.woj.service.QuestionTemplateService;
 import com.wcy.woj.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 题目接口
@@ -39,6 +45,11 @@ public class QuestionController {
 
     @Resource
     private QuestionService questionService;
+    @Resource
+    private QuestionTemplateService questionTemplateService;
+
+    @Resource
+    private QuestionStatusService questionStatusService;
 
     @Resource
     private UserService userService;
@@ -53,6 +64,7 @@ public class QuestionController {
      * @return
      */
     @PostMapping("/add")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Long> addQuestion(@RequestBody QuestionAddRequest questionAddRequest, HttpServletRequest request) {
         if (questionAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -83,6 +95,16 @@ public class QuestionController {
         boolean result = questionService.save(question);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         long newQuestionId = question.getId();
+        // 保存模板
+        List<QuestionTemplate> questionTemplates = questionAddRequest.getQuestionTemplates();
+        if (questionTemplates != null) {
+            for (QuestionTemplate questionTemplate : questionTemplates) {
+                questionTemplate.setQuestionId(newQuestionId);
+                questionTemplate.setUserId(loginUser.getId());
+                boolean save = questionTemplateService.save(questionTemplate);
+                ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR);
+            }
+        }
         return ResultUtils.success(newQuestionId);
     }
 
@@ -94,21 +116,21 @@ public class QuestionController {
      * @return
      */
     @PostMapping("/delete")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> deleteQuestion(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User user = userService.getLoginUser(request);
         long id = deleteRequest.getId();
         // 判断是否存在
         Question oldQuestion = questionService.getById(id);
         ThrowUtils.throwIf(oldQuestion == null, ErrorCode.NOT_FOUND_ERROR);
-        // 仅管理员可删除
-        if (!userService.isAdmin(request)) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-        }
         boolean b = questionService.removeById(id);
-        return ResultUtils.success(b);
+        // 删除模板
+        QueryWrapper<QuestionTemplate> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("questionId", id);
+        boolean remove = questionTemplateService.remove(queryWrapper);
+        return ResultUtils.success(b && remove);
     }
 
     /**
@@ -148,29 +170,6 @@ public class QuestionController {
     }
 
     /**
-     * 根据 id 获取
-     *
-     * @param id
-     * @return
-     */
-    @GetMapping("/get")
-    public BaseResponse<Question> getQuestionById(long id, HttpServletRequest request) {
-        if (id <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        Question question = questionService.getById(id);
-        if (question == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-        }
-        User loginUser = userService.getLoginUser(request);
-        // 不是本人或管理员，不能直接获取所有信息
-        if (!question.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-        }
-        return ResultUtils.success(question);
-    }
-
-    /**
      * 根据 id 获取（脱敏）
      *
      * @param id
@@ -185,7 +184,7 @@ public class QuestionController {
         if (question == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        return ResultUtils.success(questionService.getQuestionVO(question, request));
+        return ResultUtils.success(questionService.getQuestionVO(question,"normal", request));
     }
 
     /**
@@ -208,27 +207,38 @@ public class QuestionController {
     }
 
     /**
-     * 分页获取当前用户创建的资源列表
-     *
-     * @param questionQueryRequest
+     * 根据 id 获取（管理员）
+     * @param id
      * @param request
      * @return
      */
-    @PostMapping("/my/list/page/vo")
-    public BaseResponse<Page<QuestionVO>> listMyQuestionVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
-                                                                 HttpServletRequest request) {
-        if (questionQueryRequest == null) {
+    @GetMapping("/get")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Question> getQuestionById(long id, HttpServletRequest request) {
+        if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User loginUser = userService.getLoginUser(request);
-        questionQueryRequest.setUserId(loginUser.getId());
-        long current = questionQueryRequest.getCurrent();
-        long size = questionQueryRequest.getPageSize();
-        // 限制爬虫
-        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<Question> questionPage = questionService.page(new Page<>(current, size),
-                questionService.getQueryWrapper(questionQueryRequest));
-        return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
+        Question question = questionService.getById(id);
+        if (question == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        // 1. 查询模板
+        List<QuestionTemplate> questionTemplates = questionTemplateService.listByQuestionId(question.getId());
+        List<QuestionTemplateVO> questionTemplateVOList = questionTemplates.stream().map(questionTemplate -> {
+            QuestionTemplateVO questionTemplateVO = new QuestionTemplateVO();
+            questionTemplateVO.setCode(questionTemplate.getCode());
+            questionTemplateVO.setLanguage(questionTemplate.getLanguage());
+            return questionTemplateVO;
+        }).collect(Collectors.toList());
+        question.setQuestionTemplates(questionTemplateVOList);
+        // 2. 查询题目状态
+        QuestionStatus questionStatus = questionStatusService.getByQuestionIdAndUserIdAndType(question.getId(), userService.getLoginUser(request).getId(), "normal");
+        if (questionStatus == null) {
+            question.setStatus(0);
+        }else {
+            question.setStatus(questionStatus.getStatus());
+        }
+        return ResultUtils.success(question);
     }
 
     /**
@@ -246,53 +256,47 @@ public class QuestionController {
         long size = questionQueryRequest.getPageSize();
         Page<Question> questionPage = questionService.page(new Page<>(current, size),
                 questionService.getQueryWrapper(questionQueryRequest));
+        List<Question> questionList = questionPage.getRecords();
+        // 填充信息
+        List<Question> questions = questionList.stream().map(question -> {
+            List<QuestionTemplate> questionTemplates = questionTemplateService.listByQuestionId(question.getId());
+            List<QuestionTemplateVO> questionTemplateVOList = questionTemplates.stream().map(questionTemplate -> {
+                QuestionTemplateVO questionTemplateVO = new QuestionTemplateVO();
+                questionTemplateVO.setCode(questionTemplate.getCode());
+                questionTemplateVO.setLanguage(questionTemplate.getLanguage());
+                return questionTemplateVO;
+            }).collect(Collectors.toList());
+            question.setQuestionTemplates(questionTemplateVOList);
+            // 2. 查询题目状态
+            QuestionStatus questionStatus = questionStatusService.getByQuestionIdAndUserIdAndType(question.getId(), userService.getLoginUser(request).getId(), "normal");
+            if (questionStatus == null) {
+                question.setStatus(0);
+            }else {
+                question.setStatus(questionStatus.getStatus());
+            }
+            return question;
+        }).collect(Collectors.toList());
+        questionPage.setRecords(questions);
         return ResultUtils.success(questionPage);
     }
 
-    // endregion
-
     /**
-     * 编辑（用户）
-     *
-     * @param questionEditRequest
-     * @param request
-     * @return
+     * 随机每日一题
      */
-    @PostMapping("/edit")
-    public BaseResponse<Boolean> editQuestion(@RequestBody QuestionEditRequest questionEditRequest, HttpServletRequest request) {
-        if (questionEditRequest == null || questionEditRequest.getId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        Question question = new Question();
-        BeanUtils.copyProperties(questionEditRequest, question);
-        List<String> tags = questionEditRequest.getTags();
-        if (tags != null) {
-            question.setTags(GSON.toJson(tags));
-        }
-        List<JudgeCase> judgeCase = questionEditRequest.getJudgeCase();
-        if (judgeCase != null) {
-            question.setJudgeCase(GSON.toJson(judgeCase));
-        }
-        JudgeConfig judgeConfig = questionEditRequest.getJudgeConfig();
-        if (judgeConfig != null) {
-            question.setJudgeConfig(GSON.toJson(judgeConfig));
-        }
-        // 参数校验
-        questionService.validQuestion(question, false);
-        User loginUser = userService.getLoginUser(request);
-        long id = questionEditRequest.getId();
-        // 判断是否存在
-        Question oldQuestion = questionService.getById(id);
-        ThrowUtils.throwIf(oldQuestion == null, ErrorCode.NOT_FOUND_ERROR);
-        // 仅本人或管理员可编辑
-        if (!oldQuestion.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-        }
-        boolean result = questionService.updateById(question);
-        return ResultUtils.success(result);
+    @PostMapping("/daily")
+    public BaseResponse<QuestionVO> getDailyQuestion(@RequestBody DailyQueryRequest dailyQueryRequest, HttpServletRequest request) {
+        QuestionVO dailyQuestionVO = questionService.getDailyQuestionVO(dailyQueryRequest, request);
+        return ResultUtils.success(dailyQuestionVO);
     }
 
-
+    /**
+     * 获取题目完成情况
+     */
+    @PostMapping("/finish")
+    public BaseResponse<QuestionFinishVO> getQuestionFinish(@RequestBody QuestionStatusQueryRequest questionStatusQueryRequest, HttpServletRequest request) {
+        QuestionFinishVO questionFinishVO = questionStatusService.getQuestionFinish(questionStatusQueryRequest, request);
+        return ResultUtils.success(questionFinishVO);
+    }
 
 
 }

@@ -1,6 +1,7 @@
 package com.wcy.woj.judge;
 
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wcy.woj.common.ErrorCode;
 import com.wcy.woj.exception.BusinessException;
 import com.wcy.woj.judge.codesandbox.CodeSandbox;
@@ -12,16 +13,20 @@ import com.wcy.woj.judge.codesandbox.model.ExecuteStatusEnum;
 import com.wcy.woj.judge.model.JudgeInfo;
 import com.wcy.woj.judge.strategy.JudgeContext;
 import com.wcy.woj.model.dto.question.JudgeCase;
+import com.wcy.woj.model.dto.questionrun.QuestionRunAddRequest;
 import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.wcy.woj.model.entity.Question;
 import com.wcy.woj.model.entity.QuestionRun;
+import com.wcy.woj.model.entity.QuestionStatus;
 import com.wcy.woj.model.entity.QuestionSubmit;
 import com.wcy.woj.model.enums.JudgeInfoMessageEnum;
+import com.wcy.woj.model.enums.QuestionStatusEnum;
 import com.wcy.woj.model.enums.QuestionSubmitStatusEnum;
 import com.wcy.woj.model.vo.QuestionRunVO;
 import com.wcy.woj.model.vo.QuestionSubmitVO;
 import com.wcy.woj.service.QuestionRunService;
 import com.wcy.woj.service.QuestionService;
+import com.wcy.woj.service.QuestionStatusService;
 import com.wcy.woj.service.QuestionSubmitService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +47,9 @@ public class JudgeServiceImpl implements JudgeService {
     private QuestionSubmitService questionSubmitService;
 
     @Resource
+    private QuestionStatusService questionStatusService;
+
+    @Resource
     private QuestionRunService questionRunService;
     @Resource
     private JudgeManager judgeManager;
@@ -51,7 +59,7 @@ public class JudgeServiceImpl implements JudgeService {
 
 
     @Override
-    public QuestionSubmit doJudge(long questionSubmitId) {
+    public QuestionSubmit doJudge(long questionSubmitId,long userId, QuestionSubmitAddRequest questionSubmitAddRequest) {
         // 1）传入题目的提交 id，获取到对应的题目、提交信息（包含代码、编程语言等）
         QuestionSubmit questionSubmit = questionSubmitService.getById(questionSubmitId);
         if (questionSubmit == null) {
@@ -118,6 +126,26 @@ public class JudgeServiceImpl implements JudgeService {
         judgeContext.setLanguage(language);
         JudgeInfo judgeInfo = judgeManager.doJudge(judgeContext);
 
+        if (judgeInfo.getStatus().equals(JudgeInfoMessageEnum.ACCEPTED.getValue())) {
+            // 5.1）如果判题结果为通过，就更新题目的通过数 + 1
+            Question questionUpdate = new Question();
+            questionUpdate.setId(questionId);
+            questionUpdate.setAcceptedNum(question.getAcceptedNum() + 1);
+            boolean updateQuestion = questionService.updateById(questionUpdate);
+            if (!updateQuestion) {
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "题目状态更新错误");
+            }
+            // 5.2）就修改题目的状态为已通过
+            // 1. 查询题目状态
+            QuestionStatus questionStatus = questionStatusService.getByQuestionIdAndUserIdAndType(questionId ,userId, questionSubmitAddRequest.getType());
+            questionStatus.setId(questionStatus.getId());
+            questionStatus.setStatus(QuestionStatusEnum.ACCEPTED.getValue());
+            boolean updateQuestionStatus = questionStatusService.updateById(questionStatus);
+            if (!updateQuestionStatus) {
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "题目状态更新错误");
+            }
+        }
+
         // 6）修改数据库中的判题结果
         questionSubmitUpdate = updateQuestionSubmitStatus(judgeInfo, questionSubmitId);
         return questionSubmitUpdate;
@@ -125,7 +153,7 @@ public class JudgeServiceImpl implements JudgeService {
     }
 
     @Override
-    public QuestionRun runJudge(long questionRunId) {
+    public QuestionRun runJudge(long questionRunId, QuestionRunAddRequest questionRunAddRequest) {
         // 1）传入题目的提交 id，获取到对应的题目、提交信息（包含代码、编程语言等）
         QuestionRun questionRun = questionRunService.getById(questionRunId);
         if (questionRun == null) {
@@ -174,13 +202,15 @@ public class JudgeServiceImpl implements JudgeService {
         JudgeInfo executeJudgeInfo = executeCodeResponse.getJudgeInfo();
         if (Objects.equals(ExecuteStatusEnum.getEnumByCode(status), ExecuteStatusEnum.COMPILE_ERROR)) {
             // 编译错误
-            executeJudgeInfo.setMessage(JudgeInfoMessageEnum.COMPILE_ERROR.getValue());
+            executeJudgeInfo.setMessage(JudgeInfoMessageEnum.COMPILE_ERROR.getText());
+            executeJudgeInfo.setStatus(JudgeInfoMessageEnum.COMPILE_ERROR.getValue());
             //修改数据库中的判题结果
             questionRunUpdate = updateQuestionRunStatus(executeJudgeInfo, questionRunId);
             return questionRunUpdate;
         } else if (Objects.equals(ExecuteStatusEnum.getEnumByCode(status), ExecuteStatusEnum.RUNTIME_ERROR)) {
             // 运行时错误
-            executeJudgeInfo.setMessage(JudgeInfoMessageEnum.RUNTIME_ERROR.getValue());
+            executeJudgeInfo.setMessage(JudgeInfoMessageEnum.RUNTIME_ERROR.getText());
+            executeJudgeInfo.setStatus(JudgeInfoMessageEnum.RUNTIME_ERROR.getValue());
             // 修改数据库中的判题结果
             questionRunUpdate = updateQuestionRunStatus(executeJudgeInfo, questionRunId);
             return questionRunUpdate;

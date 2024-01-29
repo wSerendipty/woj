@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 
  */
 @RestController
-@RequestMapping("/comment_thumb")
+@RequestMapping("/post/comment_thumb")
 @Slf4j
 public class PostCommentThumbController {
 

@@ -2,6 +2,9 @@ package com.wcy.woj.model.dto.user;
 
 import com.wcy.woj.common.PageRequest;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.Date;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -18,15 +21,6 @@ public class UserQueryRequest extends PageRequest implements Serializable {
      */
     private Long id;
 
-    /**
-     * 开放平台id
-     */
-    private String unionId;
-
-    /**
-     * 公众号openId
-     */
-    private String mpOpenId;
 
     /**
      * 用户昵称
@@ -34,9 +28,14 @@ public class UserQueryRequest extends PageRequest implements Serializable {
     private String userName;
 
     /**
-     * 简介
+     * 开始时间
      */
-    private String userProfile;
+    private Date StartTime;
+
+    /**
+     * 结束时间
+     */
+    private Date EndTime;
 
     /**
      * 用户角色：user/admin/ban

@@ -30,6 +30,8 @@ public class PostQueryRequest extends PageRequest implements Serializable {
      */
     private String searchText;
 
+    private List<String> specialTags;
+
     /**
      * 标题
      */

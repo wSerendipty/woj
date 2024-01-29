@@ -80,9 +80,6 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (StringUtils.isNotBlank(title) && title.length() > 80) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "标题过长");
         }
-        if (StringUtils.isNotBlank(content) && content.length() > 8192) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "内容过长");
-        }
     }
 
     /**
@@ -121,6 +118,7 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
         queryWrapper.eq("isDelete", false);
+        queryWrapper.orderBy(true,false, "specialTags");
         queryWrapper.orderBy(ObjectUtils.isEmpty(sortField), false, "createTime");
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
@@ -303,6 +301,26 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         return postVOPage;
     }
 
+    /**
+     * 根据点赞数取前10个
+     * @return
+     */
+    @Override
+    public List<PostVO> listTopPost() {
+        QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc("thumbNum");
+        queryWrapper.last("limit 10");
+        List<Post> postList = baseMapper.selectList(queryWrapper);
+        if (CollectionUtils.isEmpty(postList)) {
+            return Collections.emptyList();
+        }
+        return postList.stream().map(post -> {
+            PostVO postVO = PostVO.objToVo(post);
+            User user = userService.getById(post.getUserId());
+            postVO.setUser(userService.getUserVO(user));
+            return postVO;
+        }).collect(Collectors.toList());
+    }
 
 
 }

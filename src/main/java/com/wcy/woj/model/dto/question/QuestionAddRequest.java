@@ -1,5 +1,6 @@
 package com.wcy.woj.model.dto.question;
 
+import com.wcy.woj.model.entity.QuestionTemplate;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -34,6 +35,16 @@ public class QuestionAddRequest implements Serializable {
     private String answer;
 
     /**
+     * 题目难度（简单、中等、困难）
+     */
+    private String difficulty;
+
+    /**
+     * 题目状态（0：未开始，1：通过 2：尝试过）
+     */
+    private Integer status;
+
+    /**
      * 判题用例
      */
     private List<JudgeCase> judgeCase;
@@ -42,6 +53,11 @@ public class QuestionAddRequest implements Serializable {
      * 测试判题用例
      */
     private List<JudgeCase> testJudgeCase;
+
+    /**
+     * 题目模板
+     */
+    private List<QuestionTemplate> questionTemplates;
 
     /**
      * 判题配置

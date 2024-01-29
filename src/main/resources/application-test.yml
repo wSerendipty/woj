@@ -1,6 +1,6 @@
 # 测试配置文件
 server:
-  port: 8101
+  port: 8110
 spring:
   # 数据库配置
   # todo 需替换配置
@@ -23,3 +23,12 @@ spring:
     uris: http://localhost:9200
     username: root
     password: 123456
+# 代码沙箱配置
+codesandbox:
+  type: remote # example: 示例沙箱，remote: 远程沙箱
+  way: docker # original: 原生实现，docker 为 docker 实现
+
+# 远程沙箱连接配置
+auth:
+  request:
+    secret: Wcy0626..

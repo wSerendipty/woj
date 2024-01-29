@@ -1,10 +1,14 @@
 package com.wcy.woj.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wcy.woj.annotation.AuthCheck;
 import com.wcy.woj.common.BaseResponse;
+import com.wcy.woj.common.DeleteRequest;
 import com.wcy.woj.common.ErrorCode;
 import com.wcy.woj.common.ResultUtils;
+import com.wcy.woj.constant.UserConstant;
 import com.wcy.woj.exception.BusinessException;
+import com.wcy.woj.exception.ThrowUtils;
 import com.wcy.woj.model.dto.questionrun.QuestionRunAddRequest;
 import com.wcy.woj.model.dto.questionrun.QuestionRunQueryRequest;
 import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitAddRequest;
@@ -28,7 +32,7 @@ import javax.servlet.http.HttpServletRequest;
  * @date 2024/1/17 10:09
  */
 @RestController
-@RequestMapping("/question_run")
+@RequestMapping("/question/question_run")
 public class QuestionRunController {
 
     @Resource
@@ -96,5 +100,17 @@ public class QuestionRunController {
         // 返回脱敏信息
         return ResultUtils.success(questionRunService.getQuestionRunVO(questionRun, loginUser));
     }
+
+    @PostMapping("/delete")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<String> deleteQuestionRun(@RequestBody DeleteRequest deleteRequest) {
+        if (deleteRequest == null || deleteRequest.getId() == null || deleteRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        boolean b = questionRunService.removeById(deleteRequest.getId());
+        ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success("删除成功");
+    }
+
 
 }

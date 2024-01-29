@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
  */
 @RestController
-@RequestMapping("/post_favour")
+@RequestMapping("/post/post_favour")
 @Slf4j
 public class PostFavourController {
 

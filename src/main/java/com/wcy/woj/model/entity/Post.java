@@ -1,10 +1,7 @@
 package com.wcy.woj.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -39,11 +36,13 @@ public class Post implements Serializable {
     /**
      * 标签列表 json
      */
+    @TableField(value = "tags",updateStrategy = FieldStrategy.IGNORED)
     private String tags;
 
     /**
      * 特殊标签列表
      */
+    @TableField(value = "specialTags",updateStrategy = FieldStrategy.IGNORED)
     private String specialTags;
 
     /**

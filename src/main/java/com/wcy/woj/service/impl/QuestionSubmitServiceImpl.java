@@ -12,14 +12,13 @@ import com.wcy.woj.model.dto.question.JudgeCase;
 import com.wcy.woj.model.dto.questionrun.QuestionRunAddRequest;
 import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
-import com.wcy.woj.model.entity.Question;
-import com.wcy.woj.model.entity.QuestionRun;
-import com.wcy.woj.model.entity.QuestionSubmit;
-import com.wcy.woj.model.entity.User;
+import com.wcy.woj.model.entity.*;
+import com.wcy.woj.model.enums.QuestionStatusEnum;
 import com.wcy.woj.model.enums.QuestionSubmitLanguageEnum;
 import com.wcy.woj.model.enums.QuestionSubmitStatusEnum;
 import com.wcy.woj.model.vo.QuestionSubmitVO;
 import com.wcy.woj.service.QuestionService;
+import com.wcy.woj.service.QuestionStatusService;
 import com.wcy.woj.service.QuestionSubmitService;
 import com.wcy.woj.service.UserService;
 import com.wcy.woj.utils.SqlUtils;
@@ -47,6 +46,9 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
     private QuestionService questionService;
 
     @Resource
+    private QuestionStatusService questionStatusService;
+
+    @Resource
     private UserService userService;
 
     @Resource
@@ -67,6 +69,11 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         QuestionSubmitLanguageEnum languageEnum = QuestionSubmitLanguageEnum.getEnumByValue(language);
         if (languageEnum == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "编程语言错误");
+        }
+        // 校验是否有代码
+        String code = questionSubmitAddRequest.getCode();
+        if (StringUtils.isBlank(code)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "代码不能为空");
         }
         long questionId = questionSubmitAddRequest.getQuestionId();
         // 判断实体是否存在，根据类别获取实体
@@ -89,15 +96,42 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         if (!save){
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "数据插入失败");
         }
+        // 修改题目的提交次数
+        Question questionUpdate = new Question();
+        questionUpdate.setId(questionId);
+        questionUpdate.setSubmitNum(question.getSubmitNum() + 1);
+        boolean b = questionService.updateById(questionUpdate);
+        if (!b) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "题目提交次数更新失败");
+        }
+
+        // 修改题目的状态
+        QueryWrapper<QuestionStatus> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId", userId);
+        queryWrapper.eq("questionId", questionId);
+        queryWrapper.eq("type", questionSubmitAddRequest.getType());
+        // 1. 查询题目状态
+        QuestionStatus questionStatus = questionStatusService.getOne(queryWrapper);
+        // 2. 如果没有题目状态，则创建题目状态
+        if (questionStatus == null) {
+            questionStatus = new QuestionStatus();
+            questionStatus.setUserId(userId);
+            questionStatus.setQuestionId(questionId);
+            questionStatus.setType(questionSubmitAddRequest.getType());
+            questionStatus.setStatus(QuestionStatusEnum.TRIED.getValue());
+            boolean saved = questionStatusService.save(questionStatus);
+            if (!saved) {
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "题目状态创建失败");
+            }
+        }
+
         Long questionSubmitId = questionSubmit.getId();
         // 执行判题服务
         CompletableFuture.runAsync(() -> {
-            judgeService.doJudge(questionSubmitId);
+            judgeService.doJudge(questionSubmitId,userId,questionSubmitAddRequest);
         });
         return questionSubmitId;
     }
-
-
 
 
     /**

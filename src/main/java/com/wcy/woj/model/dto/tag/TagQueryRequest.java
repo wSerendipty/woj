@@ -1,11 +1,14 @@
 package com.wcy.woj.model.dto.tag;
 
+import com.wcy.woj.common.PageRequest;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.io.Serializable;
 
-
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class TagQueryRequest implements Serializable {
+public class TagQueryRequest extends PageRequest implements Serializable {
     /**
      * id
      */
@@ -22,4 +25,5 @@ public class TagQueryRequest implements Serializable {
     private String belongType;
 
     private static final long serialVersionUID = 1L;
+
 }

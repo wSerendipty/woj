@@ -67,6 +67,10 @@ public class PostController {
         if (tags != null) {
             post.setTags(GSON.toJson(tags));
         }
+        List<String> specialTags = postAddRequest.getSpecialTags();
+        if (specialTags != null) {
+            post.setSpecialTags(GSON.toJson(specialTags));
+        }
         postService.validPost(post, true);
         User loginUser = userService.getLoginUser(request);
         post.setUserId(loginUser.getId());
@@ -120,6 +124,13 @@ public class PostController {
         List<String> tags = postUpdateRequest.getTags();
         if (tags != null) {
             post.setTags(GSON.toJson(tags));
+        }
+        List<String> specialTags = postUpdateRequest.getSpecialTags();
+        if (specialTags != null) {
+            post.setSpecialTags(GSON.toJson(specialTags));
+        }
+        if (specialTags == null){
+            post.setSpecialTags(null);
         }
         // 参数校验
         postService.validPost(post, false);
@@ -192,24 +203,6 @@ public class PostController {
         return ResultUtils.success(postService.getPostVOPage(postPage, request));
     }
 
-    // endregion
-
-    /**
-     * 分页搜索（从 ES 查询，封装类）
-     *
-     * @param postQueryRequest
-     * @param request
-     * @return
-     */
-    @PostMapping("/search/page/vo")
-    public BaseResponse<Page<PostVO>> searchPostVOByPage(@RequestBody PostQueryRequest postQueryRequest,
-            HttpServletRequest request) {
-        long size = postQueryRequest.getPageSize();
-        // 限制爬虫
-        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<Post> postPage = postService.searchFromEs(postQueryRequest);
-        return ResultUtils.success(postService.getPostVOPage(postPage, request));
-    }
 
     /**
      * 编辑（用户）
@@ -242,6 +235,15 @@ public class PostController {
         }
         boolean result = postService.updateById(post);
         return ResultUtils.success(result);
+    }
+
+    /**
+     * 根据点赞数取前10个
+     */
+    @GetMapping("/list/top/vo")
+    public BaseResponse<List<PostVO>> listTopPostVO(HttpServletRequest request) {
+        List<PostVO> postList = postService.listTopPost();
+        return ResultUtils.success(postList);
     }
 
 }

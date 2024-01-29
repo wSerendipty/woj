@@ -1,6 +1,6 @@
 # 线上配置文件
 server:
-  port: 8101
+  port: 8110
 spring:
   # 数据库配置
   # todo 需替换配置

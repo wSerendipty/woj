@@ -4,6 +4,7 @@ package com.wcy.woj.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.wcy.woj.model.dto.daily.DailyQueryRequest;
 import com.wcy.woj.model.dto.question.QuestionQueryRequest;
 import com.wcy.woj.model.entity.Question;
 import com.wcy.woj.model.vo.QuestionVO;
@@ -41,7 +42,7 @@ public interface QuestionService extends IService<Question> {
      * @param request
      * @return
      */
-    QuestionVO getQuestionVO(Question question, HttpServletRequest request);
+    QuestionVO getQuestionVO(Question question,String type, HttpServletRequest request);
 
     /**
      * 分页获取题目封装
@@ -63,12 +64,12 @@ public interface QuestionService extends IService<Question> {
     QuestionVO getQuestionVOAdmin(Question question, HttpServletRequest request);
 
     /**
-     * 分页获取题目封装（管理员）
-     *
-     * @param questionPage
+     * 获取每日一题封装
+     * @param dailyQueryRequest
      * @param request
      * @return
      */
-    Page<QuestionVO> getQuestionVOPageAdmin(Page<Question> questionPage, HttpServletRequest request);
-    
+    QuestionVO getDailyQuestionVO(DailyQueryRequest dailyQueryRequest, HttpServletRequest request);
+
+
 }

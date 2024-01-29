@@ -26,6 +26,17 @@ public class QuestionEditRequest implements Serializable {
      */
     private String content;
 
+
+    /**
+     * 题目难度（简单、中等、困难）
+     */
+    private String difficulty;
+
+    /**
+     * 题目状态（0：未开始，1：通过 2：尝试过）
+     */
+    private Integer status;
+
     /**
      * 标签列表
      */

@@ -27,6 +27,17 @@ public class QuestionQueryRequest extends PageRequest implements Serializable {
     private String title;
 
     /**
+     * 题目难度（简单、中等、困难）
+     */
+    private String difficulty;
+
+    /**
+     * 题解数
+     */
+    private Integer solutionNum;
+
+
+    /**
      * 内容
      */
     private String content;
@@ -36,10 +47,6 @@ public class QuestionQueryRequest extends PageRequest implements Serializable {
      */
     private List<String> tags;
 
-    /**
-     * 题目答案
-     */
-    private String answer;
 
     /**
      * 创建用户 id

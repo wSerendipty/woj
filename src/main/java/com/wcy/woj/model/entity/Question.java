@@ -6,6 +6,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+
+import com.wcy.woj.model.vo.QuestionTemplateVO;
 import lombok.Data;
 
 /**
@@ -18,7 +21,7 @@ public class Question implements Serializable {
     /**
      * id
      */
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
@@ -52,6 +55,17 @@ public class Question implements Serializable {
     private Integer acceptedNum;
 
     /**
+     * 题目难度（简单、中等、困难）
+     */
+    private String difficulty;
+
+    /**
+     * 题目状态（0：未开始，1：通过 2：尝试过）
+     */
+    @TableField(exist = false)
+    private Integer status;
+
+    /**
      * 判题用例（json 数组）
      */
     private String judgeCase;
@@ -60,6 +74,12 @@ public class Question implements Serializable {
      * 测试判题用例（json 数组）
      */
     private String testJudgeCase;
+
+    /**
+     * 题目模板
+     */
+    @TableField(exist = false)
+    private List<QuestionTemplateVO> questionTemplates;
 
     /**
      * 判题配置（json 对象）
@@ -75,6 +95,11 @@ public class Question implements Serializable {
      * 收藏数
      */
     private Integer favourNum;
+
+    /**
+     * 题解数
+     */
+    private Integer solutionNum;
 
     /**
      * 创建用户 id

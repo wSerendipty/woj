@@ -1,10 +1,14 @@
 package com.wcy.woj.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wcy.woj.annotation.AuthCheck;
 import com.wcy.woj.common.BaseResponse;
+import com.wcy.woj.common.DeleteRequest;
 import com.wcy.woj.common.ErrorCode;
 import com.wcy.woj.common.ResultUtils;
+import com.wcy.woj.constant.UserConstant;
 import com.wcy.woj.exception.BusinessException;
+import com.wcy.woj.exception.ThrowUtils;
 import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.wcy.woj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.wcy.woj.model.entity.Question;
@@ -13,6 +17,7 @@ import com.wcy.woj.model.entity.User;
 import com.wcy.woj.model.vo.QuestionSubmitVO;
 import com.wcy.woj.service.QuestionSubmitService;
 import com.wcy.woj.service.UserService;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -24,7 +29,7 @@ import javax.servlet.http.HttpServletRequest;
  * @date 2024/1/17 10:09
  */
 @RestController
-@RequestMapping("/question_submit")
+@RequestMapping("/question/question_submit")
 public class QuestionSubmitController {
 
     @Resource
@@ -53,7 +58,6 @@ public class QuestionSubmitController {
     }
 
 
-
     /**
      * 分页获取题目提交列表（除了管理员外，普通用户只能看到非答案、提交代码等公开信息）
      *
@@ -66,6 +70,11 @@ public class QuestionSubmitController {
                                                                          HttpServletRequest request) {
         long current = questionSubmitQueryRequest.getCurrent();
         long size = questionSubmitQueryRequest.getPageSize();
+        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR, "每页最多显示20条记录");
+        if (ObjectUtils.isNotEmpty(questionSubmitQueryRequest.getUserId())){
+            User loginUser = userService.getLoginUser(request);
+            questionSubmitQueryRequest.setUserId(loginUser.getId());
+        }
         // 从数据库中查询原始的题目提交分页信息
         Page<QuestionSubmit> questionSubmitPage = questionSubmitService.page(new Page<>(current, size),
                 questionSubmitService.getQueryWrapper(questionSubmitQueryRequest));
@@ -94,5 +103,17 @@ public class QuestionSubmitController {
         // 返回脱敏信息
         return ResultUtils.success(questionSubmitService.getQuestionSubmitVO(questionSubmit, loginUser));
     }
+
+    @PostMapping("/delete")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<String> deleteQuestionSubmit(@RequestBody DeleteRequest deleteRequest) {
+        if (deleteRequest == null || deleteRequest.getId() == null || deleteRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        boolean b = questionSubmitService.removeById(deleteRequest.getId());
+        ThrowUtils.throwIf(!b, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success("删除成功");
+    }
+
 
 }
