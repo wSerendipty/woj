@@ -4,7 +4,11 @@ import cn.hutool.core.net.url.UrlBuilder;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Set;
 
 
 /**
@@ -22,10 +26,16 @@ public class HttpHeadersHandler extends ChannelInboundHandlerAdapter {
             UrlBuilder urlBuilder = UrlBuilder.ofHttp(request.uri());
             // 获取请求路径
             request.setUri(urlBuilder.getPath().toString());
-            // 获取cookie
-            String cookie = request.headers().get("Cookie");
-            NettyUtil.setAttr(ctx.channel(), NettyUtil.COOKIE, cookie);
-
+            ServerCookieDecoder cookieDecoder = ServerCookieDecoder.LAX;
+            Set<Cookie> cookies = cookieDecoder.decode(request.headers().get("Cookie"));
+            //遍历cookies
+            for (Cookie cookie : cookies) {
+                if (cookie.name().equals("SESSION")) {
+                    NettyUtil.setAttr(ctx.channel(), NettyUtil.COOKIE, cookie.value());
+                }
+                log.info(cookie.name());
+                log.info(cookie.value());
+            }
             ctx.pipeline().remove(this);
             ctx.fireChannelRead(request);
         }

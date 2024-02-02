@@ -5,6 +5,7 @@ import static com.wcy.woj.constant.UserConstant.USER_LOGIN_STATE;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.gson.Gson;
 import com.wcy.woj.common.ErrorCode;
 import com.wcy.woj.constant.CommonConstant;
 import com.wcy.woj.exception.BusinessException;
@@ -15,6 +16,7 @@ import com.wcy.woj.model.enums.UserRoleEnum;
 import com.wcy.woj.model.vo.LoginUserVO;
 import com.wcy.woj.model.vo.UserVO;
 import com.wcy.woj.service.UserService;
+import com.wcy.woj.utils.RedisUtil;
 import com.wcy.woj.utils.SqlUtils;
 
 import java.time.LocalDateTime;
@@ -22,11 +24,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -43,6 +50,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * 盐值，混淆密码
      */
     private static final String SALT = "woj";
+
+
+    @Value("${server.servlet.session.cookie.max-age}")
+    private Long COOKIE_TIME;
+
+    @Resource
+    private RedisUtil redisUtil;
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -107,8 +121,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在或密码错误");
         }
         // 3. 记录用户的登录态
+        LoginUserVO loginUserVO = this.getLoginUserVO(user);
+        // 4. 记录session
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
-        return this.getLoginUserVO(user);
+        redisUtil.set(String.valueOf(user.getId()), new Gson().toJson(loginUserVO), COOKIE_TIME);
+        return loginUserVO;
     }
 
     /**
@@ -119,17 +136,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public User getLoginUser(HttpServletRequest request) {
-        // 先判断是否已登录
+        Gson gson = new Gson();
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         User currentUser = (User) userObj;
-        if (currentUser == null || currentUser.getId() == null) {
+        if (ObjectUtils.isEmpty(currentUser) || ObjectUtils.isEmpty(currentUser.getId())) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-        }
-        // 从数据库查询（追求性能的话可以注释，直接走缓存）
-        long userId = currentUser.getId();
-        currentUser = this.getById(userId);
-        if (currentUser == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }else {
+            Object userJson = redisUtil.get(String.valueOf(currentUser.getId()));
+            if (ObjectUtils.isNotEmpty(userJson)) {
+                currentUser = gson.fromJson(userJson.toString(), User.class);
+            }else {
+                throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+            }
         }
         return currentUser;
     }

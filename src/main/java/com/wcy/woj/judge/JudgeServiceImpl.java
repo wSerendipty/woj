@@ -105,15 +105,20 @@ public class JudgeServiceImpl implements JudgeService {
         Integer status = executeCodeResponse.getStatus();
         JudgeContext judgeContext = new JudgeContext();
         JudgeInfo executeJudgeInfo = executeCodeResponse.getJudgeInfo();
+        if (executeJudgeInfo == null) {
+            executeJudgeInfo = new JudgeInfo();
+        }
         if (Objects.equals(ExecuteStatusEnum.getEnumByCode(status), ExecuteStatusEnum.COMPILE_ERROR)) {
             // 编译错误
-            executeJudgeInfo.setMessage(JudgeInfoMessageEnum.COMPILE_ERROR.getValue());
+            executeJudgeInfo.setMessage(JudgeInfoMessageEnum.COMPILE_ERROR.getText());
+            executeJudgeInfo.setStatus(JudgeInfoMessageEnum.COMPILE_ERROR.getValue());
             //修改数据库中的判题结果
             questionSubmitUpdate = updateQuestionSubmitStatus(executeJudgeInfo, questionSubmitId);
             return questionSubmitUpdate;
         } else if (Objects.equals(ExecuteStatusEnum.getEnumByCode(status), ExecuteStatusEnum.RUNTIME_ERROR)) {
             // 运行时错误
-            executeJudgeInfo.setMessage(JudgeInfoMessageEnum.RUNTIME_ERROR.getValue());
+            executeJudgeInfo.setMessage(JudgeInfoMessageEnum.RUNTIME_ERROR.getText());
+            executeJudgeInfo.setStatus(JudgeInfoMessageEnum.RUNTIME_ERROR.getValue());
             // 修改数据库中的判题结果
             questionSubmitUpdate = updateQuestionSubmitStatus(executeJudgeInfo, questionSubmitId);
             return questionSubmitUpdate;
@@ -200,6 +205,9 @@ public class JudgeServiceImpl implements JudgeService {
         Integer status = executeCodeResponse.getStatus();
         JudgeContext judgeContext = new JudgeContext();
         JudgeInfo executeJudgeInfo = executeCodeResponse.getJudgeInfo();
+        if (executeJudgeInfo == null) {
+            executeJudgeInfo = new JudgeInfo();
+        }
         if (Objects.equals(ExecuteStatusEnum.getEnumByCode(status), ExecuteStatusEnum.COMPILE_ERROR)) {
             // 编译错误
             executeJudgeInfo.setMessage(JudgeInfoMessageEnum.COMPILE_ERROR.getText());
@@ -208,7 +216,6 @@ public class JudgeServiceImpl implements JudgeService {
             questionRunUpdate = updateQuestionRunStatus(executeJudgeInfo, questionRunId);
             return questionRunUpdate;
         } else if (Objects.equals(ExecuteStatusEnum.getEnumByCode(status), ExecuteStatusEnum.RUNTIME_ERROR)) {
-            // 运行时错误
             executeJudgeInfo.setMessage(JudgeInfoMessageEnum.RUNTIME_ERROR.getText());
             executeJudgeInfo.setStatus(JudgeInfoMessageEnum.RUNTIME_ERROR.getValue());
             // 修改数据库中的判题结果

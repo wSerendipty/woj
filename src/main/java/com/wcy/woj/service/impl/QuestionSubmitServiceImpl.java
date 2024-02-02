@@ -109,7 +109,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         QueryWrapper<QuestionStatus> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userId", userId);
         queryWrapper.eq("questionId", questionId);
-        queryWrapper.eq("type", questionSubmitAddRequest.getType());
+        queryWrapper.eq("type", StringUtils.isNotEmpty(questionSubmitAddRequest.getType())?questionSubmitAddRequest.getType():"normal");
         // 1. 查询题目状态
         QuestionStatus questionStatus = questionStatusService.getOne(queryWrapper);
         // 2. 如果没有题目状态，则创建题目状态

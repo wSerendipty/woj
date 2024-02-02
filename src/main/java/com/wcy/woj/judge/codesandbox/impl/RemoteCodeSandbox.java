@@ -3,6 +3,7 @@ package com.wcy.woj.judge.codesandbox.impl;
 import cn.hutool.crypto.digest.MD5;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
+import com.wcy.woj.MainApplication;
 import com. wcy.woj.common.ErrorCode;
 import com. wcy.woj.exception.BusinessException;
 import com. wcy.woj.judge.codesandbox.CodeSandbox;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RemoteCodeSandbox implements CodeSandbox {
 
+
     // 定义鉴权请求头和密钥
     private static final String AUTH_REQUEST_HEADER = "Authorization";
 
@@ -32,9 +34,12 @@ public class RemoteCodeSandbox implements CodeSandbox {
         System.out.println("远程代码沙箱");
         String url = ""; // docker沙箱
         if (WAY.equals("docker")){
+//            url = "http://172.17.213.195:8181/executeCode/docker";
             url = "https://codesandbox.serendipty.xyz/executeCode/docker";
+//            url = "http://localhost:8181/executeCode/docker";
         }else {
             url = "https://codesandbox.serendipty.xyz/executeCode";
+//            url = "http://localhost:8181/executeCode";
         }
         String json = JSONUtil.toJsonStr(executeCodeRequest);
         String responseStr = HttpUtil.createPost(url)

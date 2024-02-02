@@ -1,7 +1,6 @@
 package com.wcy.woj.service;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
 
 public interface WebSocketService {
 
@@ -13,9 +12,9 @@ public interface WebSocketService {
      * 主动认证登录
      *
      * @param channel
-     * @param token
+     * @param cookie
      */
-    void authorize(Channel channel, String token);
+    void authorize(Channel channel, String cookie);
 
 
 }

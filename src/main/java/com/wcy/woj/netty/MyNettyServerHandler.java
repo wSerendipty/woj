@@ -4,7 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.google.gson.Gson;
-import com.wcy.woj.common.BaseResponse;
 import com.wcy.woj.common.ErrorCode;
 import com.wcy.woj.common.ResultUtils;
 import com.wcy.woj.service.WebSocketService;
@@ -80,9 +79,12 @@ public class MyNettyServerHandler extends SimpleChannelInboundHandler<TextWebSoc
             }
         } else if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
             this.webSocketService.connect(ctx.channel());
-            String token = NettyUtil.getAttr(ctx.channel(), NettyUtil.COOKIE);
-            if (StrUtil.isNotBlank(token)) {
-                this.webSocketService.authorize(ctx.channel(), token);
+            String cookie = NettyUtil.getAttr(ctx.channel(), NettyUtil.COOKIE);
+            if (StrUtil.isNotBlank(cookie)) {
+                this.webSocketService.authorize(ctx.channel(), cookie);
+            }else {
+                ctx.channel().writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录"))));
+                ctx.channel().close();
             }
         }
         super.userEventTriggered(ctx, evt);
@@ -96,6 +98,7 @@ public class MyNettyServerHandler extends SimpleChannelInboundHandler<TextWebSoc
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        cause.printStackTrace();
         log.warn("异常发生，异常消息 ={}", cause.getMessage());
         ctx.channel().writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(ResultUtils.error(ErrorCode.SYSTEM_ERROR, "服务器异常"))));
         ctx.channel().close();

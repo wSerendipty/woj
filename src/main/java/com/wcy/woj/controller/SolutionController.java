@@ -63,7 +63,7 @@ public class SolutionController {
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<Long> addPost(@RequestBody SolutionAddRequest solutionAddRequest, HttpServletRequest request) {
+    public BaseResponse<Long> addSolution(@RequestBody SolutionAddRequest solutionAddRequest, HttpServletRequest request) {
         if (solutionAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -100,7 +100,7 @@ public class SolutionController {
      * @return
      */
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deletePost(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> deleteSolution(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -125,7 +125,7 @@ public class SolutionController {
      */
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> updatePost(@RequestBody SolutionEditRequest solutionEditRequest) {
+    public BaseResponse<Boolean> updateSolution(@RequestBody SolutionEditRequest solutionEditRequest) {
         if (solutionEditRequest == null || solutionEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -159,7 +159,7 @@ public class SolutionController {
      * @return
      */
     @GetMapping("/get/vo")
-    public BaseResponse<SolutionVO> getPostVOById(long id, HttpServletRequest request) {
+    public BaseResponse<SolutionVO> getSolutionVOById(long id, HttpServletRequest request) {
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -178,7 +178,7 @@ public class SolutionController {
      * @return
      */
     @PostMapping("/list/page/vo")
-    public BaseResponse<Page<SolutionVO>> listPostVOByPage(@RequestBody SolutionQueryRequest solutionQueryRequest,
+    public BaseResponse<Page<SolutionVO>> listSolutionVOByPage(@RequestBody SolutionQueryRequest solutionQueryRequest,
                                                        HttpServletRequest request) {
         long current = solutionQueryRequest.getCurrent();
         long size = solutionQueryRequest.getPageSize();
@@ -197,7 +197,7 @@ public class SolutionController {
      * @return
      */
     @PostMapping("/my/list/page/vo")
-    public BaseResponse<Page<SolutionVO>> listMyPostVOByPage(@RequestBody SolutionQueryRequest solutionQueryRequest,
+    public BaseResponse<Page<SolutionVO>> listMySolutionVOByPage(@RequestBody SolutionQueryRequest solutionQueryRequest,
                                                          HttpServletRequest request) {
         if (solutionQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -222,7 +222,7 @@ public class SolutionController {
      * @return
      */
     @PostMapping("/edit")
-    public BaseResponse<Boolean> editPost(@RequestBody SolutionEditRequest solutionEditRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> editSolution(@RequestBody SolutionEditRequest solutionEditRequest, HttpServletRequest request) {
         if (solutionEditRequest == null || solutionEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
