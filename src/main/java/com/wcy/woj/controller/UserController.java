@@ -19,10 +19,12 @@ import com.wcy.woj.model.entity.User;
 import com.wcy.woj.model.vo.LoginUserVO;
 import com.wcy.woj.model.vo.UserVO;
 import com.wcy.woj.service.UserService;
+
 import java.util.List;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -37,8 +39,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 用户接口
- *
-
  */
 @RestController
 @RequestMapping("/user")
@@ -47,7 +47,6 @@ public class UserController {
 
     @Resource
     private UserService userService;
-
 
 
     // region 登录相关
@@ -93,7 +92,6 @@ public class UserController {
         LoginUserVO loginUserVO = userService.userLogin(userAccount, userPassword, request);
         return ResultUtils.success(loginUserVO);
     }
-
 
 
     /**
@@ -178,7 +176,7 @@ public class UserController {
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest,
-            HttpServletRequest request) {
+                                            HttpServletRequest request) {
         if (userUpdateRequest == null || userUpdateRequest.getId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -190,23 +188,30 @@ public class UserController {
     }
 
     /**
-     * 根据 id 获取用户（仅管理员）
+     * 根据 id 获取用户（仅管理员 和自己本身获取）
      *
      * @param id
      * @param request
      * @return
      */
     @GetMapping("/get")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<User> getUserById(long id, HttpServletRequest request) {
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if (!userService.isAdmin(request)) {
+            User loginUser = userService.getLoginUser(request);
+            if (loginUser == null) {
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+            }
+            if (loginUser.getId() != id) {
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+            }
         }
         User user = userService.getById(id);
         ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
         return ResultUtils.success(user);
     }
-
 
 
     /**
@@ -235,7 +240,7 @@ public class UserController {
      */
     @PostMapping("/edit")
     public BaseResponse<Boolean> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest,
-            HttpServletRequest request) {
+                                              HttpServletRequest request) {
         if (userUpdateMyRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }

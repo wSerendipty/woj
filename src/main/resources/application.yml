@@ -62,9 +62,16 @@ mybatis-plus:
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
 # 对象存储
-
+# todo 需替换配置
+#cos:
+#  client:
+#    accessKey: AKIDQrfOyWzTsCOewXJ61yrdN3lfinu5Nf3T # 云 API 密钥 SecretId
+#    secretKey: Y0ngYqDZwOzZ6kEatIak0ENQOPIE9DFN
+#    region: ap-beijing
+#    bucket: woj-1307671515
 # 代码沙箱配置
 codesandbox:
   type: remote # example: 示例沙箱，remote: 远程沙箱
 ws:
   port: 8888
+
