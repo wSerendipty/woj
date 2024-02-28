@@ -55,6 +55,11 @@ public class QuestionUpdateRequest implements Serializable {
     private List<JudgeCase> judgeCase;
 
     /**
+     * 测试用例
+     */
+    private List<JudgeCase> testJudgeCase;
+
+    /**
      * 判题配置
      */
     private JudgeConfig judgeConfig;

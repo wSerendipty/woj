@@ -1,5 +1,7 @@
 package com.wcy.woj.controller;
 
+import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wcy.woj.annotation.AuthCheck;
 import com.wcy.woj.common.BaseResponse;
@@ -17,25 +19,26 @@ import com.wcy.woj.model.dto.user.UserUpdateMyRequest;
 import com.wcy.woj.model.dto.user.UserUpdateRequest;
 import com.wcy.woj.model.entity.User;
 import com.wcy.woj.model.vo.LoginUserVO;
-import com.wcy.woj.model.vo.UserVO;
 import com.wcy.woj.service.UserService;
 
-import java.util.List;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import com.wcy.woj.utils.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ThreadUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * 用户接口
@@ -47,6 +50,11 @@ public class UserController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private RedisUtil redisUtil;
+
+    private static final String SALT = "woj";
 
 
     // region 登录相关
@@ -239,16 +247,58 @@ public class UserController {
      * @return
      */
     @PostMapping("/edit")
-    public BaseResponse<Boolean> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest,
-                                              HttpServletRequest request) {
+    public BaseResponse<Object> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest,
+                                             HttpServletRequest request) {
         if (userUpdateMyRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 判断账号是否存在 且不是自己
+        String userAccount = userUpdateMyRequest.getUserAccount();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userAccount", userAccount);
+        if (StringUtils.isNotBlank(userAccount)) {
+            User user = userService.getOne(queryWrapper);
+            if (user != null) {
+                User loginUser = userService.getLoginUser(request);
+                ThrowUtils.throwIf(!Objects.equals(user.getId(), loginUser.getId()), ErrorCode.REPEAT_ERROR, "账号已存在");
+            }
         }
         User loginUser = userService.getLoginUser(request);
         User user = new User();
         BeanUtils.copyProperties(userUpdateMyRequest, user);
         user.setId(loginUser.getId());
         boolean result = userService.updateById(user);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        // 修改成功后重新设置redis中的用户信息
+        redisUtil.set(loginUser.getId().toString(), JSONUtil.toJsonStr(user));
+        return ResultUtils.success(true);
+    }
+
+
+    /**
+     * 修改密码
+     */
+    @PostMapping("/edit/password")
+    public BaseResponse<Boolean> updateMyPassword(@RequestBody UserRegisterRequest userRegisterRequest,
+                                                  HttpServletRequest request) {
+        if (userRegisterRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String userPassword = userRegisterRequest.getUserPassword();
+        String checkPassword = userRegisterRequest.getCheckPassword();
+        if (StringUtils.isAnyBlank(userPassword, checkPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if (userPassword.length() < 8 || checkPassword.length() < 8) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码过短");
+        }
+        if (!Objects.equals(userPassword, checkPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
+        }
+        User loginUser = userService.getLoginUser(request);
+        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+        loginUser.setUserPassword(encryptPassword);
+        boolean result = userService.updateById(loginUser);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }

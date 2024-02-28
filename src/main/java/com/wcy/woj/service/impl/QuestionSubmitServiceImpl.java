@@ -17,6 +17,7 @@ import com.wcy.woj.model.enums.QuestionStatusEnum;
 import com.wcy.woj.model.enums.QuestionSubmitLanguageEnum;
 import com.wcy.woj.model.enums.QuestionSubmitStatusEnum;
 import com.wcy.woj.model.vo.QuestionSubmitVO;
+import com.wcy.woj.model.vo.QuestionVO;
 import com.wcy.woj.service.QuestionService;
 import com.wcy.woj.service.QuestionStatusService;
 import com.wcy.woj.service.QuestionSubmitService;
@@ -173,6 +174,11 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         if (userId != questionSubmit.getUserId() && !userService.isAdmin(loginUser)) {
             questionSubmitVO.setCode(null);
         }
+        // 获取对应的题目信息
+        Question question = questionService.getById(questionSubmit.getQuestionId());
+        QuestionVO questionVO = QuestionVO.objToVo(question);
+        questionSubmitVO.setQuestionVO(questionVO);
+
         return questionSubmitVO;
     }
 

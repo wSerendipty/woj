@@ -32,9 +32,6 @@ public class PushDailyOnce implements CommandLineRunner {
     @Resource
     private DailyService dailyService;
 
-    /**
-     * 每天0点执行一次
-     */
     @Override
     public void run(String... args) {
         // 获取今天的开始和结束时间（包括整个24小时）
@@ -56,6 +53,9 @@ public class PushDailyOnce implements CommandLineRunner {
         questionQueryWrapper.orderByAsc("RAND()");
         questionQueryWrapper.last("LIMIT 1");
         Question question = questionService.getOne(questionQueryWrapper);
+        if (question == null){
+            throw new BusinessException(ErrorCode.OPERATION_ERROR);
+        }
         Daily daily = new Daily();
         daily.setQuestionId(question.getId());
         daily.setBelongType("question");
