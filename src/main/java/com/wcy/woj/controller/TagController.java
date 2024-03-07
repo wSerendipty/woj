@@ -38,6 +38,7 @@ public class TagController {
         // 判断标签名是否存在
         QueryWrapper<Tag> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("name", tag.getName());
+        queryWrapper.eq("belongType",tagAddRequest.getBelongType());
         Tag one = tagService.getOne(queryWrapper);
         ThrowUtils.throwIf(one != null, ErrorCode.REPEAT_ERROR);
         boolean save = tagService.save(tag);

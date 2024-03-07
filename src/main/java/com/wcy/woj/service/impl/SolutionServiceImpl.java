@@ -74,6 +74,7 @@ public class SolutionServiceImpl extends ServiceImpl<SolutionMapper, Solution>
         String content = solutionQueryRequest.getContent();
         List<String> tagList = solutionQueryRequest.getTags();
         Long userId = solutionQueryRequest.getUserId();
+        Long questionId = solutionQueryRequest.getQuestionId();
         queryWrapper.like(StringUtils.isNotBlank(title), "title", title);
         queryWrapper.like(StringUtils.isNotBlank(content), "content", content);
         if (CollectionUtils.isNotEmpty(tagList)) {
@@ -82,6 +83,7 @@ public class SolutionServiceImpl extends ServiceImpl<SolutionMapper, Solution>
             }
         }
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(questionId), "questionId", questionId);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
         queryWrapper.eq("isDelete", false);
         queryWrapper.orderBy(ObjectUtils.isEmpty(sortField), false, "createTime");
