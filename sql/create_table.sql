@@ -227,6 +227,22 @@ create table if not exists daily
 ) comment '每日' collate = utf8mb4_unicode_ci;
 
 
+-- 通知表
+create table if not exists notify
+(
+    id         bigint auto_increment comment 'id' primary key,
+    title      varchar(256)                       not null comment '通知标题',
+    content    varchar(256)                       null comment '通知内容',
+    senderId   bigint                             null comment '发送者ID',
+    receiverId bigint                             null comment '接收者ID',
+    type       varchar(256)                       not null comment '所属类型（系统，私信等）',
+    status     int                                 not null default 0 comment '是否已读。0 未读 1 已读',
+    createTime datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete   tinyint  default 0                 not null comment '是否删除'
+) comment '通知' collate = utf8mb4_unicode_ci;
+
+
 -- 竞赛表
 create table if not exists contest
 (

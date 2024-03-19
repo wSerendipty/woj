@@ -21,6 +21,7 @@ import com.wcy.woj.utils.SqlUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,8 +40,6 @@ import org.springframework.util.DigestUtils;
 
 /**
  * 用户服务实现
- *
-
  */
 @Service
 @Slf4j
@@ -122,9 +121,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         // 3. 记录用户的登录态
         LoginUserVO loginUserVO = this.getLoginUserVO(user);
-        // 4. 记录session
-        request.getSession().setAttribute(USER_LOGIN_STATE, user);
-        redisUtil.set(String.valueOf(user.getId()), new Gson().toJson(loginUserVO), COOKIE_TIME);
+
+
+        String cookie = request.getCookies().length != 0 ? request.getCookies()[0].getValue() : "";
+        if (!cookie.isEmpty()) {
+            redisUtil.set(cookie, new Gson().toJson(loginUserVO), COOKIE_TIME);
+        }
         return loginUserVO;
     }
 
@@ -137,15 +139,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public User getLoginUser(HttpServletRequest request) {
         Gson gson = new Gson();
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User currentUser = (User) userObj;
-        if (ObjectUtils.isEmpty(currentUser) || ObjectUtils.isEmpty(currentUser.getId())) {
+        String cookie = request.getCookies().length != 0 ? request.getCookies()[0].getValue() : "";
+        User currentUser;
+        if (cookie.isEmpty()) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-        }else {
-            Object userJson = redisUtil.get(String.valueOf(currentUser.getId()));
+        } else {
+            Object userJson = redisUtil.get(cookie);
             if (ObjectUtils.isNotEmpty(userJson)) {
                 currentUser = gson.fromJson(userJson.toString(), User.class);
-            }else {
+            } else {
                 throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
             }
         }
@@ -197,11 +199,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public boolean userLogout(HttpServletRequest request) {
-        if (request.getSession().getAttribute(USER_LOGIN_STATE) == null) {
+        Cookie cookie = request.getCookies()[0];
+        Object o = redisUtil.get(cookie.getValue());
+        Gson gson = new Gson();
+        User user = gson.fromJson(o.toString(), User.class);
+        if (user == null) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "未登录");
         }
         // 移除登录态
-        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        redisUtil.del(cookie.getValue());
         return true;
     }
 

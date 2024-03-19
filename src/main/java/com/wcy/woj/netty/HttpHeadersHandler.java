@@ -1,14 +1,9 @@
 package com.wcy.woj.netty;
 
-import cn.hutool.core.net.url.UrlBuilder;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.cookie.Cookie;
-import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Set;
 
 
 /**
@@ -20,26 +15,17 @@ import java.util.Set;
 public class HttpHeadersHandler extends ChannelInboundHandlerAdapter {
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg){
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (msg instanceof FullHttpRequest) {
             FullHttpRequest request = (FullHttpRequest) msg;
-            UrlBuilder urlBuilder = UrlBuilder.ofHttp(request.uri());
-            // 获取请求路径
-            request.setUri(urlBuilder.getPath().toString());
-            ServerCookieDecoder cookieDecoder = ServerCookieDecoder.LAX;
-            Set<Cookie> cookies = cookieDecoder.decode(request.headers().get("Cookie"));
-            //遍历cookies
-            for (Cookie cookie : cookies) {
-                if (cookie.name().equals("SESSION")) {
-                    NettyUtil.setAttr(ctx.channel(), NettyUtil.COOKIE, cookie.value());
-                }
-                log.info(cookie.name());
-                log.info(cookie.value());
-            }
+            // 获取websocket 携带的cookie
+            String cookie = request.headers().get("Cookie");
+            System.out.println(cookie.split("=")[1]);
+            // 记录cookie即可实现登录认证
+            NettyUtil.setAttr(ctx.channel(), NettyUtil.COOKIE, cookie.split("=")[1]);
             ctx.pipeline().remove(this);
             ctx.fireChannelRead(request);
-        }
-        else {
+        } else {
             ctx.fireChannelRead(msg);
         }
     }

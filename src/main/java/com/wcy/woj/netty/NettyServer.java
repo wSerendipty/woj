@@ -38,10 +38,10 @@ public class NettyServer {
 
     /**
      * 启动 ws server
-     *
+     * todo 取消下方注释即可启动websocket
      * @return
      */
-    @PostConstruct
+//    @PostConstruct
     public void start()  {
         run();
     }

@@ -5,7 +5,10 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import com.google.gson.Gson;
 import com.wcy.woj.common.ErrorCode;
+import com.wcy.woj.common.MessageRequest;
 import com.wcy.woj.common.ResultUtils;
+import com.wcy.woj.exception.BusinessException;
+import com.wcy.woj.model.enums.WSReqTypeEnum;
 import com.wcy.woj.service.WebSocketService;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -27,7 +30,7 @@ public class MyNettyServerHandler extends SimpleChannelInboundHandler<TextWebSoc
     // 用来保存所有的客户端连接
     private WebSocketService webSocketService;
 
-    private Gson gson = new Gson();
+    private final Gson gson = new Gson();
 
     private WebSocketService getService() {
         return SpringUtil.getBean(WebSocketService.class);
@@ -40,6 +43,7 @@ public class MyNettyServerHandler extends SimpleChannelInboundHandler<TextWebSoc
      */
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        log.info("客户端连接");
         this.webSocketService = getService();
     }
 
@@ -82,9 +86,6 @@ public class MyNettyServerHandler extends SimpleChannelInboundHandler<TextWebSoc
             String cookie = NettyUtil.getAttr(ctx.channel(), NettyUtil.COOKIE);
             if (StrUtil.isNotBlank(cookie)) {
                 this.webSocketService.authorize(ctx.channel(), cookie);
-            }else {
-                ctx.channel().writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, "未登录"))));
-                ctx.channel().close();
             }
         }
         super.userEventTriggered(ctx, evt);
@@ -100,13 +101,32 @@ public class MyNettyServerHandler extends SimpleChannelInboundHandler<TextWebSoc
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         cause.printStackTrace();
         log.warn("异常发生，异常消息 ={}", cause.getMessage());
+        if (cause.getMessage().equals(ErrorCode.NOT_LOGIN_ERROR.getMessage())){
+            ctx.channel().writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR, ErrorCode.NOT_LOGIN_ERROR.getMessage()))));
+            ctx.channel().close();
+            return;
+        }
         ctx.channel().writeAndFlush(new TextWebSocketFrame(JSONUtil.toJsonStr(ResultUtils.error(ErrorCode.SYSTEM_ERROR, "服务器异常"))));
         ctx.channel().close();
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) {
-        log.info("接收到的消息为：{}", msg.text());
+//        log.info("接收到的消息为：{}", msg.text());
+        MessageRequest messageRequest = JSONUtil.toBean(msg.text(), MessageRequest.class);
+        WSReqTypeEnum enumByValue = WSReqTypeEnum.getEnumByValue(messageRequest.getType());
+        if (enumByValue == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        switch (enumByValue){
+            case HEARTBEAT:
+                log.info("心跳");
+                break;
+            case LOGIN:
+                log.info("登录");
+            default:
+                break;
+        }
     }
 
 }
